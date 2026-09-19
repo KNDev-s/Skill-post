@@ -1,12 +1,36 @@
+# Dependências
 node_modules/
+backend/node_modules/
+
+# Builds e relatórios
 dist/
-.env
-.env.*
-!.env.example
-*.local
-.wrangler/
+backend/dist/
 coverage/
 playwright-report/
 test-results/
 work/
 *.tsbuildinfo
+.wrangler/
+
+# Arquivos confidenciais, chaves e tokens
+.env
+.env.*
+*.env
+*.env.*
+*.local
+*.pem
+*.key
+*.cert
+credentials.json
+tokens.json
+token.json
+service-account*.json
+client_secret*.json
+
+# Manter apenas arquivos de exemplo de variáveis
+!.env.example
+!backend/.env.example
+
+# Mídias e imagens geradas dinamicamente
+backend/public/slides/*
+!backend/public/slides/.gitkeep
