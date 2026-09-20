@@ -339,7 +339,7 @@ export function CreatorPage({ service }: { service: PostService }) {
                     </span>
                     <div>
                       <strong>Identidade KNDev's</strong>
-                      <small>Visual provisório · aguardando assets</small>
+                      <small>Paleta, fontes e logo oficiais</small>
                     </div>
                     <CircleHelp size={15} aria-hidden="true" />
                   </div>
@@ -414,7 +414,11 @@ export function CreatorPage({ service }: { service: PostService }) {
                         <Sparkles size={28} />
                       </span>
                       <strong>Dando forma à sua ideia...</strong>
-                      <span>Preparando seu conteúdo para revisão.</span>
+                      <span>
+                        {demo
+                          ? 'Preparando seu conteúdo para revisão.'
+                          : 'Na fila de criação. O processamento pode levar alguns minutos.'}
+                      </span>
                       <div className="loading-bar" />
                     </div>
                   )}

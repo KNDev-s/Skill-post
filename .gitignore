@@ -11,6 +11,9 @@ test-results/
 work/
 *.tsbuildinfo
 .wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
 
 # Arquivos confidenciais, chaves e tokens
 .env

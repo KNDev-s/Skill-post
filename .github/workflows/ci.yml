@@ -1,4 +1,4 @@
-name: Frontend checks
+name: Application and security checks
 on:
   push:
     branches: ['feature/**', main]
@@ -13,11 +13,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
       - run: npm ci
       - run: npm run format:check
       - run: npm run check
+      - run: npm run deploy:check
+      - run: node scripts/audit-secrets.mjs
+      - run: npm audit --audit-level=moderate
+      - run: npm --prefix backend ci --ignore-scripts
+      - run: npm --prefix backend test
+      - run: npm --prefix backend audit --audit-level=moderate
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
       - uses: actions/upload-artifact@v4

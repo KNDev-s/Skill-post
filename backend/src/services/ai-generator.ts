@@ -167,9 +167,10 @@ Retorne um JSON no formato:
   }
 }
 
-function generateFallbackContent(
-  brief: GeneratePostRequest,
-): { slides: Omit<Slide, 'id'>[]; caption: string } {
+function generateFallbackContent(brief: GeneratePostRequest): {
+  slides: Omit<Slide, 'id'>[];
+  caption: string;
+} {
   const count = brief.slideCount;
   const slides: Omit<Slide, 'id'>[] = [];
 
@@ -177,7 +178,7 @@ function generateFallbackContent(
   slides.push({
     layout: 'cover',
     title: brief.topic,
-    body: 'Como simplificar processos e acelerar sua operação com tecnologia prática da KNDev\'s.',
+    body: "Como simplificar processos e acelerar sua operação com tecnologia prática da KNDev's.",
   });
 
   // Intermediate slides
@@ -229,7 +230,7 @@ function generateFallbackContent(
   slides.push({
     layout: 'closing',
     title: 'Pronto para dar o próximo passo?',
-    body: 'Fale com a equipe da KNDev\'s Solutions e descubra como levar mais inteligência e automação para o seu negócio.',
+    body: "Fale com a equipe da KNDev's Solutions e descubra como levar mais inteligência e automação para o seu negócio.",
   });
 
   const caption = `${brief.topic} 🚀\n\nNo cenário atual, automação e clareza de processos são fundamentais para empresas que querem escalar com solidez e eficiência.\n\nDeslize o carrossel para conferir os principais passos e salve para consultar na sua próxima sprint!\n\n#KNDevs #KNDevsSolutions #Tecnologia #Automacao #SoftwareEngineering #Inovacao #SocialStudio`;

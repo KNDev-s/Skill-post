@@ -1,3 +1,40 @@
 name = "kndevs-social-creator"
-pages_build_output_dir = "./dist"
-compatibility_date = "2026-09-18"
+main = "worker/index.ts"
+compatibility_date = "2026-09-19"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+preview_urls = false
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = true
+
+[vars]
+APP_ORIGIN = "https://social.example.com"
+ACCESS_TEAM_DOMAIN = "REPLACE.cloudflareaccess.com"
+ACCESS_AUD = "REPLACE_WITH_ACCESS_APPLICATION_AUD"
+OPENAI_MODEL = "gpt-4o"
+INSTAGRAM_API_HOST = "graph.instagram.com"
+META_API_VERSION = "v21.0"
+ENABLE_PUBLISHING = "false"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kndevs-social"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "MEDIA"
+bucket_name = "kndevs-social-media"
+
+[browser]
+binding = "BROWSER"
+
+[triggers]
+crons = ["* * * * *"]
+
+[observability]
+enabled = false

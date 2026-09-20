@@ -2,6 +2,20 @@
 
 Fonte dos tipos e validação: `src/types/post.ts`. Interface de operações: `src/services/post-service.ts`. Base configurável, normalmente `/api/v1`. O frontend não usa SDK da IA, Meta, R2 ou Cloudflare.
 
+## Implementação Cloudflare
+
+O Worker em `worker/` implementa as operações abaixo. Requer domínio HTTPS oficial e JWT válido do Cloudflare Access. Cada post e imagem pertence ao `sub` autenticado; não há compartilhamento de posts entre usuários nesta versão.
+
+Todas as escritas exigem `Origin` igual a `APP_ORIGIN`, `Content-Type: application/json` e `Idempotency-Key` no formato UUID. O servidor limita o corpo a 16 KiB e valida campos/revisão. A idempotência vale para todas as escritas, não apenas criação; a mesma chave com dados diferentes retorna `409`. A resposta original do comando é preservada; use GET para consultar o estado mais recente.
+
+O agendamento aceita de um minuto a 30 dias no futuro e valida o fuso IANA. Cron inicia um trabalho por minuto, priorizando publicação. `202` significa persistido na fila, sem garantia de execução no segundo exato. Revisões também avançam quando jobs iniciam/terminam. Posts agendados, em processamento, publicados ou com falha não aceitam edição.
+
+Além das operações do frontend, há `GET /posts`, retornando `{ data: Post[] }` com os 30 posts mais recentes do proprietário, e `GET /posts/:id/media/:slideId/:revision.png` para a imagem privada. Os IDs criados pelo Worker são UUIDs; IDs das rotas aceitam letras, números e hífen. A listagem ainda não possui tela dedicada.
+
+A rota externa `/media/:postId/:revision/:slideId.jpg` fica fora desta base e só aceita GET com assinatura e expiração válidas. Ela é exclusiva para imagens persistidas no R2 e não aceita URLs arbitrárias.
+
+O renderer usa título de até 90 caracteres e corpo de até 260 para caber na arte; o DTO geral mantém os limites maiores para compatibilidade. Sem IA configurada, renderer funcional, aprovação ou publicação habilitada, não há sucesso simulado. Respostas de erro não incluem tokens nem mensagens brutas de provedores.
+
 ## Endpoints
 
 Todos retornam JSON `{ "data": Post }`. `200`/`201` para resultado concluído; `202` para operação aceita, incluindo **o Post completo** com status intermediário. Não retornar `204`.

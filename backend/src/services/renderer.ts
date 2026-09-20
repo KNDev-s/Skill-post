@@ -151,7 +151,7 @@ export function generateSlideSvg(
   <g transform="translate(100, 1220)">
     <text x="0" y="45" fill="#64748B" font-family="Space Grotesk, sans-serif" font-size="20" font-weight="600">kndevs.com.br</text>
     <text x="880" y="45" fill="${isClosing ? '#F9543B' : '#134AFB'}" font-family="Space Grotesk, sans-serif" font-size="22" font-weight="700" text-anchor="end">
-      ${isClosing ? 'Fale com a KNDev\'s ➔' : 'Arraste para o lado ➔'}
+      ${isClosing ? "Fale com a KNDev's ➔" : 'Arraste para o lado ➔'}
     </text>
   </g>
 </svg>`;
@@ -185,10 +185,7 @@ export async function renderSlideImage(
   return `${config.baseUrl}/public/slides/${postId}/${fileName}`;
 }
 
-export async function renderAllSlides(
-  postId: string,
-  slides: Slide[],
-): Promise<Slide[]> {
+export async function renderAllSlides(postId: string, slides: Slide[]): Promise<Slide[]> {
   const updatedSlides: Slide[] = [];
   for (let i = 0; i < slides.length; i++) {
     const slide = slides[i];

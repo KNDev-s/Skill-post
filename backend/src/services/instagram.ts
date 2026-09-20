@@ -13,14 +13,12 @@ export async function publishToInstagram(post: Post): Promise<PublishResult> {
 
   if (!instagramAccessToken || !instagramAccountId) {
     console.log(
-      `[Instagram Service] Tokens da Meta não configurados. Modo Simulação/Sandbox ativado para o post ${post.id}.`,
+      `[Instagram Service] Publicação bloqueada: credenciais não configuradas para o post ${post.id}.`,
     );
     return {
-      success: true,
-      dryRun: true,
-      publishedId: `mock_ig_${Date.now()}`,
+      success: false,
       message:
-        'Publicação simulada com sucesso! Para postar na conta real, preencha INSTAGRAM_ACCESS_TOKEN e INSTAGRAM_ACCOUNT_ID no arquivo backend/.env.',
+        'Publicação não realizada. Configure INSTAGRAM_ACCESS_TOKEN e INSTAGRAM_ACCOUNT_ID no backend.',
     };
   }
 
@@ -31,14 +29,12 @@ export async function publishToInstagram(post: Post): Promise<PublishResult> {
 
   if (hasLocalImages) {
     console.warn(
-      '[Instagram Service] As imagens estão hospedadas em localhost. A Meta Graph API exige URLs HTTPS públicas (ex: Cloudflare Tunnel, R2 ou S3) para baixar as imagens. Executando em modo de teste/sandbox.',
+      '[Instagram Service] Publicação bloqueada: as imagens precisam estar acessíveis à Meta.',
     );
     return {
-      success: true,
-      dryRun: true,
-      publishedId: `local_ig_${Date.now()}`,
+      success: false,
       message:
-        'Imagens geradas localmente. Para o Instagram da Meta baixá-las, exponha a pasta via túnel HTTPS ou configure Cloudflare R2 / S3.',
+        'Publicação não realizada. Hospede as imagens em URLs HTTPS acessíveis à Meta antes de publicar.',
     };
   }
 
@@ -47,7 +43,7 @@ export async function publishToInstagram(post: Post): Promise<PublishResult> {
 
     // 1. Criar container de cada slide
     for (const slide of post.slides) {
-      const url = `https://graph.facebook.com/v21.0/${instagramAccountId}/media`;
+      const url = `https://${config.instagramApiHost}/v21.0/${instagramAccountId}/media`;
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -69,7 +65,7 @@ export async function publishToInstagram(post: Post): Promise<PublishResult> {
 
     // 2. Criar container do Carrossel com a legenda
     const carouselRes = await fetch(
-      `https://graph.facebook.com/v21.0/${instagramAccountId}/media`,
+      `https://${config.instagramApiHost}/v21.0/${instagramAccountId}/media`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -87,14 +83,12 @@ export async function publishToInstagram(post: Post): Promise<PublishResult> {
       error?: { message: string };
     };
     if (!carouselRes.ok || !carouselData.id) {
-      throw new Error(
-        carouselData.error?.message || 'Falha ao criar container do carrossel.',
-      );
+      throw new Error(carouselData.error?.message || 'Falha ao criar container do carrossel.');
     }
 
     // 3. Efetivar a publicação
     const publishRes = await fetch(
-      `https://graph.facebook.com/v21.0/${instagramAccountId}/media_publish`,
+      `https://${config.instagramApiHost}/v21.0/${instagramAccountId}/media_publish`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -110,9 +104,7 @@ export async function publishToInstagram(post: Post): Promise<PublishResult> {
       error?: { message: string };
     };
     if (!publishRes.ok || !publishData.id) {
-      throw new Error(
-        publishData.error?.message || 'Falha ao publicar carrossel no Instagram.',
-      );
+      throw new Error(publishData.error?.message || 'Falha ao publicar carrossel no Instagram.');
     }
 
     return {

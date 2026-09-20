@@ -7,6 +7,7 @@ export default defineConfig({
   reporter: 'list',
   use: { baseURL: 'http://127.0.0.1:4173', trace: 'retain-on-failure' },
   projects: [
+    { name: 'render', testMatch: 'render.spec.ts', use: { ...devices['Desktop Chrome'] } },
     {
       name: 'desktop',
       testMatch: 'creator.spec.ts',
