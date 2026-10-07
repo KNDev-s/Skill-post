@@ -6,10 +6,7 @@ import {
   type Slide,
   updateCaptionSchema,
 } from '../types.js';
-import {
-  generateCarouselContent,
-  regenerateSingleSlideContent,
-} from '../services/ai-generator.js';
+import { generateCarouselContent, regenerateSingleSlideContent } from '../services/ai-generator.js';
 import { publishToInstagram } from '../services/instagram.js';
 import {
   ConflictError,
@@ -74,8 +71,7 @@ export const postRoutes: FastifyPluginAsync = async (fastify) => {
     // Executa geração e renderização de forma assíncrona
     (async () => {
       try {
-        const { slides: generatedSlides, caption } =
-          await generateCarouselContent(brief);
+        const { slides: generatedSlides, caption } = await generateCarouselContent(brief);
 
         const slidesWithIds: Slide[] = generatedSlides.map((s, idx) => ({
           ...s,
@@ -106,53 +102,49 @@ export const postRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   // 3. POST /posts/:id/regenerate - Regenerar todo o carrossel
-  fastify.post<{ Params: { id: string } }>(
-    '/posts/:id/regenerate',
-    async (request, reply) => {
-      const parsedBody = revisionRequestSchema.safeParse(request.body);
-      if (!parsedBody.success) {
-        return reply.status(400).send({
-          error: { code: 'VALIDATION', message: 'Revisão obrigatória.' },
-        });
+  fastify.post<{ Params: { id: string } }>('/posts/:id/regenerate', async (request, reply) => {
+    const parsedBody = revisionRequestSchema.safeParse(request.body);
+    if (!parsedBody.success) {
+      return reply.status(400).send({
+        error: { code: 'VALIDATION', message: 'Revisão obrigatória.' },
+      });
+    }
+
+    const post = postStore.get(request.params.id);
+    postStore.assertRevision(post, parsedBody.data.revision);
+
+    // Marca como generating e incrementa revisão
+    const now = new Date().toISOString();
+    const generatingPost = {
+      ...post,
+      revision: post.revision + 1,
+      status: 'generating' as const,
+      updatedAt: now,
+    };
+    (postStore as unknown as { posts: Map<string, typeof post> }).posts.set(
+      post.id,
+      generatingPost,
+    );
+
+    (async () => {
+      try {
+        const { slides: generatedSlides, caption } = await generateCarouselContent(post.brief);
+        const slidesWithIds: Slide[] = generatedSlides.map((s, idx) => ({
+          ...s,
+          id: `slide_${idx + 1}`,
+        }));
+        const renderedSlides = await renderAllSlides(post.id, slidesWithIds);
+        postStore.setReady(post.id, renderedSlides, caption);
+      } catch (err) {
+        postStore.setFailed(
+          post.id,
+          err instanceof Error ? err.message : 'Falha ao regenerar carrossel.',
+        );
       }
+    })();
 
-      const post = postStore.get(request.params.id);
-      postStore.assertRevision(post, parsedBody.data.revision);
-
-      // Marca como generating e incrementa revisão
-      const now = new Date().toISOString();
-      const generatingPost = {
-        ...post,
-        revision: post.revision + 1,
-        status: 'generating' as const,
-        updatedAt: now,
-      };
-      (postStore as unknown as { posts: Map<string, typeof post> }).posts.set(
-        post.id,
-        generatingPost,
-      );
-
-      (async () => {
-        try {
-          const { slides: generatedSlides, caption } =
-            await generateCarouselContent(post.brief);
-          const slidesWithIds: Slide[] = generatedSlides.map((s, idx) => ({
-            ...s,
-            id: `slide_${idx + 1}`,
-          }));
-          const renderedSlides = await renderAllSlides(post.id, slidesWithIds);
-          postStore.setReady(post.id, renderedSlides, caption);
-        } catch (err) {
-          postStore.setFailed(
-            post.id,
-            err instanceof Error ? err.message : 'Falha ao regenerar carrossel.',
-          );
-        }
-      })();
-
-      return reply.status(202).send({ data: generatingPost });
-    },
-  );
+    return reply.status(202).send({ data: generatingPost });
+  });
 
   // 4. POST /posts/:id/slides/:slideId/regenerate - Regenerar um slide específico
   fastify.post<{ Params: { id: string; slideId: string } }>(
@@ -188,12 +180,7 @@ export const postRoutes: FastifyPluginAsync = async (fastify) => {
       };
 
       // Renderiza nova imagem do slide
-      const imageUrl = await renderSlideImage(
-        id,
-        tempSlide,
-        slideIndex,
-        post.slides.length,
-      );
+      const imageUrl = await renderSlideImage(id, tempSlide, slideIndex, post.slides.length);
 
       const updatedPost = postStore.updateSlide(id, parsedBody.data.revision, slideId, {
         ...regeneratedContent,
@@ -247,19 +234,13 @@ export const postRoutes: FastifyPluginAsync = async (fastify) => {
     (async () => {
       try {
         const result = await publishToInstagram(publishingPost);
-        if (result.success) {
+        if (result.success && result.dryRun === false && result.publishedId) {
           postStore.setPublished(id);
         } else {
-          postStore.setFailed(
-            id,
-            result.message || 'Falha na publicação com o Instagram.',
-          );
+          postStore.setFailed(id, result.message || 'Falha na publicação com o Instagram.');
         }
       } catch (err) {
-        postStore.setFailed(
-          id,
-          err instanceof Error ? err.message : 'Falha na publicação.',
-        );
+        postStore.setFailed(id, err instanceof Error ? err.message : 'Falha na publicação.');
       }
     })();
 

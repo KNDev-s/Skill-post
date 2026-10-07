@@ -4,3 +4,5 @@ package-lock.json
 test-results
 playwright-report
 work
+# Original brand references are preserved verbatim.
+skill/

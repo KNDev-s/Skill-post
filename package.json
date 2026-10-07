@@ -4,35 +4,46 @@
   "version": "0.1.0",
   "type": "module",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.16.0"
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "dev:backend": "npm --prefix backend run dev",
+    "dev:backend": "wrangler dev --local --test-scheduled",
     "build": "tsc --noEmit && vite build",
     "build:backend": "npm --prefix backend run build",
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "check": "npm run typecheck && npm test && npm run build",
+    "check": "npm run typecheck && npm run typecheck:worker && npm test && npm run test:worker && npm run build",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "dev:legacy": "npm --prefix backend run dev",
+    "typecheck:worker": "tsc -p tsconfig.worker.json",
+    "test:worker": "vitest run --config vitest.worker.config.ts",
+    "build:deploy": "node scripts/build-production.mjs",
+    "deploy:check": "npm run typecheck && npm run typecheck:worker && npm run build:deploy && wrangler deploy --dry-run"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.3.0",
+    "@fontsource/space-grotesk": "^5.3.0",
+    "jose": "^6.2.12",
     "lucide-react": "^0.468.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260920.1",
     "@playwright/test": "^1.63.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "miniflare": "^5.20260918.0-alpha",
     "prettier": "^3.9.8",
     "typescript": "~5.9.3",
     "vite": "^6.4.3",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "wrangler": "^4.135.0"
   }
 }

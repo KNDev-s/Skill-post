@@ -1,4 +1,4 @@
-import { ArrowUpRight, Code2, ImageOff } from 'lucide-react';
+import { ArrowUpRight, ImageOff } from 'lucide-react';
 import { useState } from 'react';
 import type { Slide } from '../types/post';
 
@@ -28,7 +28,7 @@ export function SlidePreview({
         <>
           <div className="slide-top">
             <span>
-              <Code2 /> KNDev's
+              <img src="/brand/logo-dark.png" alt="KNDev's Solutions" />
             </span>
             <span>IDEIAS EM MOVIMENTO</span>
           </div>

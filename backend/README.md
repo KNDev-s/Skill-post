@@ -1,19 +1,15 @@
 # Handoff para o Matheus
 
-A implementação do backend é independente. O frontend consome `PostService`; troque apenas o modo/URL para conectar a implementação real.
+O backend suportado passou para `../worker/`. O servidor Node/Fastify desta pasta está desativado nos comandos `dev`, `start` e em `src/server.ts`: ele não tinha autenticação, persistência ou executor de agendamentos adequados ao deploy. Os demais módulos foram preservados como referência e seus testes de regressão continuam disponíveis.
 
-Ponto de partida: `../docs/api.md` e `../src/types/post.ts` (schemas compartilháveis, sem dependência de React). A estrutura atual não impõe framework de Worker nem adiciona um stub que finja publicar.
+Continue o trabalho no Worker mantendo o contrato em `../src/types/post.ts` e `../docs/api.md`:
 
-Responsabilidades do backend:
+1. API e estados: `worker/api.ts`. Retorne `{ data: Post }`, inclusive no `202`; não use `204` para essas operações.
+2. Identidade: JWT assinado do Cloudflare Access; use `sub` como proprietário. Nunca aceite o proprietário enviado pelo cliente.
+3. Comandos: use `commit()` e a migração D1. O trigger registra comando, revisão e trabalho na mesma transação. Não substitua por um UPDATE seguido de uma gravação independente de idempotência.
+4. Execução: `worker/jobs.ts`. O Cron faz uma reivindicação atômica. Publicação incerta fica bloqueada; não repetir `media_publish` automaticamente.
+5. Provedores: `worker/ai.ts`, `worker/render.ts` e `worker/meta.ts`. Não devolver mensagens brutas dos provedores, aceitar URLs arbitrárias para renderizar ou incluir tokens no DTO.
+6. Arte: preservar PNG 1080 × 1350 para revisão e JPEG para publicação, com chaves imutáveis por revisão. O cliente mostra a imagem persistida.
+7. Evoluções prioritárias: renovação/expiração do token, reconciliação administrativa, cancelamento de agendamento e histórico visual. Se aumentar volume, migrar a execução para Queues/Workflows mantendo os bloqueios de publicação e a transação de entrada.
 
-1. Autenticar a equipe, autorizar cada post, validar payloads/Origin e limitar uso.
-2. Carregar a skill original de `skill/`, quando ela for disponibilizada, e executar geração estruturada com regras de marca.
-3. Renderizar mídia em 1080×1350 e guardar os arquivos. Devolver `imageUrl` para o preview; publicar as imagens renderizadas, nunca o HTML do navegador.
-4. Guardar briefing, conteúdo, revisão, aprovação, status, timestamps e falhas em armazenamento durável.
-5. Garantir controle de concorrência e idempotência. O servidor decide transições válidas.
-6. Executar jobs de geração/publicação e agendamentos independentemente da aba do usuário. Devolver status pelo GET.
-7. Integrar conta/credenciais de publicação, storage e provedores de IA somente no servidor.
-
-Não utilizar a pasta `public/` para prompts internos, skill, credenciais ou conteúdo privado. Não devolver sucesso fictício enquanto uma integração estiver pendente: responder erro claro ou estado assíncrono real.
-
-Decisões ainda abertas para a implementação do backend: provedor/modelo de IA, autenticação, banco, fila/agendador, renderer, retenção dos posts, storage/mídia e credenciais/contas de publicação. Não bloqueiam a construção da tela.
+Leia `../docs/cloudflare.md` para provisionamento e `../docs/audit.md` para os limites da validação. O código legado não recebe as garantias de segurança do Worker e não deve ser reativado sem uma nova revisão.

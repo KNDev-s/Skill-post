@@ -1,10 +1,5 @@
 import crypto from 'node:crypto';
-import type {
-  GeneratePostRequest,
-  Post,
-  SchedulePostRequest,
-  Slide,
-} from '../types.js';
+import type { GeneratePostRequest, Post, SchedulePostRequest, Slide } from '../types.js';
 
 export class ConflictError extends Error {
   constructor(message: string) {

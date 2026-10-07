@@ -1,90 +1,67 @@
 # KNDev's · Social Studio
 
-Interface interna V1 para transformar um briefing em carrossel, revisar slides e legenda, aprovar e solicitar publicação/agendamento. React + TypeScript + Vite. Frontend estático para Cloudflare Pages; backend independente para o Matheus integrar.
+Estúdio interno para gerar carrosséis, revisar, aprovar e solicitar publicação no Instagram. A interface usa React, TypeScript e Vite; o backend suportado agora é um Cloudflare Worker com D1, R2 e Browser Run. A identidade visual vem de `skill/BRAND.md` e dos logos originais em `skill/assets/`.
 
-## Estado da entrega
+## Estado atual
 
-- O repositório estava vazio na inspeção inicial em 18/09/2026.
-- A skill original e os assets KNDev's não estavam no repositório nem nos anexos da conversa de referência. `skill/README.md` registra onde adicioná-los. Não há uma skill original reconstruída ou inventada nesta entrega.
-- A identidade atual é **provisória** (wordmark em texto, lilás e fontes DM Sans/Manrope). Substituição em `src/config/brand.ts`, `src/styles.css` e `public/brand/`.
-- Modo mock permite testar todo o fluxo, sem IA, publicação externa ou custos de API. Dados ficam em memória e desaparecem ao recarregar. Um agendamento mock não dispara publicação futura.
-- O modo API está implementado contra o contrato em `docs/api.md`; não inclui backend, autenticação, renderer de imagens, storage ou integração Instagram.
+- Implementação local preparada e testada. O deploy e a validação na conta Cloudflare ainda precisam ser realizados.
+- Publicação real começa **desabilitada**. Leia o procedimento em `docs/cloudflare.md` antes de ativá-la.
+- O servidor Fastify em `backend/` foi desativado; seu código permanece como referência para o Matheus. Ele não deve ser hospedado como servidor de produção.
+- Uma conta Instagram da KNDev's, vários usuários internos autenticados pelo Cloudflare Access. Cada usuário acessa seus próprios posts.
+- Geração/publicação usam trabalhos persistentes no D1. Um Cron por minuto inicia um trabalho, priorizando publicação. A aba pode ser fechada; horários são aproximados, sujeitos a fila e disponibilidade dos provedores.
+- Não há renovação automática do token, cancelamento de agendamento pela interface, gestão de múltiplas contas ou galeria de histórico. O GET de listagem já existe; o último post é recuperado na mesma sessão do navegador.
 
-## Executar
+## Desenvolvimento
 
-Requisito: Node.js 22 ou superior (use uma versão LTS atual) e npm.
+Use Node.js 24 LTS e npm. Na raiz do projeto:
 
 ```sh
 npm ci
-cp .env.example .env.local
 npm run dev
 ```
 
-No PowerShell, use `Copy-Item .env.example .env.local` em vez de `cp` se preferir. Abra o endereço informado pelo Vite, normalmente `http://127.0.0.1:5173`.
-
-Use **Usar exemplo → Gerar conteúdo**. Selecione miniaturas, regenere um slide, edite e salve a legenda, aprove e escolha publicar agora ou agendar. Alterações invalidam a aprovação. Um novo briefing só é aplicado ao clicar em Gerar, criando outro post; regenerar usa o briefing do post atual.
+O endereço local usa demonstração, sem chamadas pagas e sem publicação. O modo fica visível na tela. A cópia local de `.env` do backend não configura automaticamente o Worker.
 
 ```sh
-npm run check          # tipos, testes de contratos/estados, build
-npx playwright install chromium
-npm run test:e2e       # fluxo completo em desktop e celular
-npm run format:check
-npm run build         # saída em dist/
-npm run preview       # confere o build, sem publicar
+node scripts/prepare-local-secrets.mjs
 ```
 
-## Variáveis
+Esse comando cria `.dev.vars` a partir dos campos existentes em `backend/.env`, gera uma chave de assinatura de mídia e nunca imprime valores. Se o arquivo já existir, preserva-o. Ambos estão ignorados pelo Git. Tudo com prefixo `VITE_` é público e jamais deve conter segredos.
 
-| Variável                | Padrão                        | Uso                                                                      |
-| ----------------------- | ----------------------------- | ------------------------------------------------------------------------ |
-| `VITE_SERVICE_MODE`     | `mock` no dev; `api` no build | `mock` para demonstração explícita, `api` para o backend                 |
-| `VITE_API_BASE_URL`     | `/api/v1`                     | URL do Worker/API incluindo versão, ex. `https://api.exemplo.com/api/v1` |
-| `VITE_API_TIMEOUT_MS`   | `30000`                       | Tempo máximo de uma requisição                                           |
-| `VITE_POLL_INTERVAL_MS` | `2000`                        | Consulta de geração/publicação; agendados usam no mínimo 15 segundos     |
-| `VITE_API_CREDENTIALS`  | `same-origin`                 | `include` apenas se a integração usar cookies entre origens              |
+```sh
+npm run check
+npm --prefix backend ci --ignore-scripts
+npm --prefix backend test
+npx playwright install chromium
+npm run test:e2e
+npm run deploy:check
+node scripts/audit-secrets.mjs
+npm audit --audit-level=moderate
+```
 
-As variáveis são incorporadas **durante o build**. Alterou configuração? Reinicie o dev server ou refaça o deploy. Tudo com `VITE_` é público; chaves de IA, Meta e Cloudflare pertencem aos secrets do backend. O `.env.example` define mock explicitamente: se copiá-lo para um ambiente de build, esse build também será demonstração.
+`deploy:check` monta o pacote e executa um dry run; não publica. `build:deploy` força o adapter real e a API `/api/v1`, evitando enviar uma demonstração por engano.
 
-Falhas da API **não acionam fallback mock**. Isso evita apresentar uma publicação fictícia como real. A escolha do adapter acontece em `src/services/index.ts`.
+O Worker não possui um atalho que remova autenticação para desenvolvimento. Os testes de integração usam D1/R2 locais e provedores simulados. Para validar serviços reais, configure um ambiente de homologação protegido, com banco/bucket/conta de teste separados. `dev:backend` inicia o emulador para diagnóstico; com os placeholders e HTTP local, o acesso às rotas é recusado por projeto.
 
-## Organização
+## Arquitetura
 
 ```text
-src/
-  components/        # Marca, preview e etapas
-  config/            # Ambiente e identidade visual
-  hooks/usePost.ts   # Operações, erros e polling sequencial
-  pages/             # Interface do estúdio
-  services/
-    post-service.ts  # Interface independente de transporte
-    api/             # Cliente HTTP + adapter de endpoints
-    mocks/           # Simulador local com mesmas regras de estados
-  types/post.ts      # DTOs e schemas Zod para respostas em runtime
-public/brand/        # Lugar para assets oficiais públicos
-skill/               # Lugar reservado para a skill original; fora do bundle
-backend/README.md    # Handoff para o Matheus
-docs/                # Contrato da API e deploy
-tests/               # Cenários de navegador
-wrangler.toml        # Configuração Cloudflare Pages
+Navegador → Cloudflare Access → Worker → D1 (posts, comandos e trabalhos)
+                                   → Assets (interface, fontes, logos)
+Cron → Worker → OpenAI → Browser Run → R2 privado (PNG + JPEG)
+Cron → Worker → Instagram Graph API → publicação
+Meta → /media/... assinado e temporário → Worker → R2
 ```
 
-## Integração do Matheus
+- `src/services/api/`: chamadas HTTP existentes, revisão e chave de idempotência.
+- `src/types/post.ts`: contrato Zod compartilhado pelo frontend e Worker.
+- `worker/security.ts`: JWT do Access, origem, limites de corpo e URLs assinadas.
+- `worker/api.ts`: autorização por proprietário e transições de estado.
+- `worker/store.ts` + `migrations/0001_posts.sql`: persistência, idempotência e concorrência atômicas.
+- `worker/jobs.ts`: execução persistente pelo Cron, bloqueio antes de publicar e recuperação de interrupções.
+- `worker/ai.ts`, `worker/render.ts`, `worker/meta.ts`: adaptadores de provedores.
+- `docs/api.md`: contrato e limites do Worker.
+- `docs/cloudflare.md`: configuração, deploy, homologação e operação.
+- `docs/audit.md`: achados, correções, evidências e limitações.
 
-1. Implementar os endpoints de `docs/api.md`, retornando `{ data: Post }` ou `{ error: { code, message } }`.
-2. Preservar `id` e incrementar `revision` a cada alteração. Validar transições e revisão no servidor; não confiar nos botões desabilitados.
-3. Executar skill, IA, renderer e publicação no backend. A tela apenas recebe texto/URLs e envia comandos.
-4. Processar tarefas longas de forma assíncrona; devolver `202` com o post `generating`/`publishing`. A tela consulta `GET /posts/:id` até concluir. Expor falhas como `failed` com mensagem legível.
-5. Para publicação/agendamento, aplicar idempotência, autenticação/autorização, validação, CORS e armazenamento durável. Ver `backend/README.md`.
-6. Configurar `VITE_SERVICE_MODE=api` e `VITE_API_BASE_URL`; testar sem mudar componentes.
-
-O preview HTML usa a proporção 4:5 e textos do DTO, mas não exporta PNGs. Quando `imageUrl` estiver presente, mostra a imagem entregue pelo backend. O renderer oficial deve garantir tipografia, margens e que o texto completo caiba na arte.
-
-## Validação da V1
-
-Testes cobrem transições, revisão e idempotência no contrato, legenda alterada após aprovação, data no passado, regeneração de um slide, timeout, erros e respostas inválidas. Os cenários de navegador cobrem desktop/celular e o adapter HTTP com respostas interceptadas (incluindo geração/publicação assíncronas e recuperação de polling). Esses testes não certificam um backend real nem publicam conteúdo.
-
-## Cloudflare
-
-Configuração pronta para **Pages**: build `npm run build`, diretório `dist`, raiz do repositório. `wrangler.toml` declara a saída; nenhum deploy foi executado automaticamente. Veja `docs/cloudflare.md` para Pages, Worker separado, cookies, CORS e proteção do acesso interno.
-
-Referências oficiais: [Vite: variáveis públicas e build](https://vite.dev/guide/env-and-mode), [Pages: build e deploy do Vite](https://developers.cloudflare.com/pages/framework-guides/deploy-a-vite3-project/), [Pages: configuração Wrangler](https://developers.cloudflare.com/pages/functions/wrangler-configuration/).
+As fontes são servidas localmente. O navegador não recebe tokens da Meta/OpenAI nem a chave de assinatura; as chamadas aos provedores partem do Worker. Falhas nunca acionam geração ou publicação simuladas no modo integrado.
