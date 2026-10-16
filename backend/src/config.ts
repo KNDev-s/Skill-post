@@ -14,7 +14,13 @@ if (!['graph.facebook.com', 'graph.instagram.com'].includes(instagramApiHost)) {
 
 export const config = {
   port: Number(process.env.PORT || 3001),
-  baseUrl: process.env.BASE_URL || 'http://127.0.0.1:3001',
+  baseUrl:
+    process.env.BASE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'http://127.0.0.1:3001'),
   corsOrigin: process.env.CORS_ORIGIN
     ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim())
     : ['http://localhost:5173', 'http://127.0.0.1:5173'],
@@ -24,6 +30,8 @@ export const config = {
   instagramAccountId: process.env.INSTAGRAM_ACCOUNT_ID || '',
   instagramApiHost,
   publicDir: path.resolve(__dirname, '../public'),
-  slidesDir: path.resolve(__dirname, '../public/slides'),
+  slidesDir:
+    process.env.SLIDES_DIR ||
+    (process.env.VERCEL ? '/tmp/slides' : path.resolve(__dirname, '../public/slides')),
   skillDir: path.resolve(__dirname, '../../skill'),
 };

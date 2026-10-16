@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "node ../scripts/legacy-disabled.mjs",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node ../scripts/legacy-disabled.mjs",
+    "start": "node dist/server.js",
     "test": "npm run build && node --test tests/*.test.mjs"
   },
   "dependencies": {
