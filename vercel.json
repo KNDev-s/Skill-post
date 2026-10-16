@@ -7,7 +7,9 @@
     },
     "backend": {
       "root": "backend",
-      "runtime": "node"
+      "framework": "fastify",
+      "runtime": "node",
+      "entrypoint": "src/server.ts"
     }
   },
   "rewrites": [
