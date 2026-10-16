@@ -8,14 +8,21 @@ let logoDataUri = '';
 
 async function getLogoDataUri(): Promise<string> {
   if (logoDataUri) return logoDataUri;
-  try {
-    const logoPath = path.join(config.skillDir, 'assets/logo-white.png');
-    const buffer = await fs.readFile(logoPath);
-    logoDataUri = `data:image/png;base64,${buffer.toString('base64')}`;
-  } catch {
-    logoDataUri = '';
+  const candidates = [
+    path.resolve(process.cwd(), 'assets/logo-white.png'),
+    path.resolve(process.cwd(), 'backend/assets/logo-white.png'),
+    path.join(config.skillDir, 'assets/logo-white.png'),
+  ];
+  for (const logoPath of candidates) {
+    try {
+      const buffer = await fs.readFile(logoPath);
+      logoDataUri = `data:image/png;base64,${buffer.toString('base64')}`;
+      return logoDataUri;
+    } catch {
+      // try next candidate
+    }
   }
-  return logoDataUri;
+  return '';
 }
 
 function escapeXml(unsafe: string): string {
