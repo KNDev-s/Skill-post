@@ -1,39 +1,21 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "services": {
-    "app": {
-      "root": ".",
-      "framework": "vite"
-    },
-    "backend": {
-      "root": "backend",
-      "entrypoint": "dist/server.js"
-    }
-  },
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": {
-        "service": "backend"
-      }
+      "source": "/health",
+      "destination": "/api/health"
+    },
+    {
+      "source": "/api/health",
+      "destination": "/api/health"
     },
     {
       "source": "/public/slides/(.*)",
-      "destination": {
-        "service": "backend"
-      }
+      "destination": "/api"
     },
     {
-      "source": "/health",
-      "destination": {
-        "service": "backend"
-      }
-    },
-    {
-      "source": "/(.*)",
-      "destination": {
-        "service": "app"
-      }
+      "source": "/api/(.*)",
+      "destination": "/api"
     }
   ]
 }
