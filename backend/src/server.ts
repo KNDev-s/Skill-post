@@ -87,45 +87,52 @@ if (!isServerless && process.env.NODE_ENV !== 'test') {
 }
 
 // Handler para ambientes serverless (Vercel Functions)
-const handler = (req: any, res: any): Promise<void> => {
-  return new Promise<void>((resolve) => {
-    if (res.writableEnded || res.finished) {
-      resolve();
-      return;
+const handler = async (req: any, res: any): Promise<void> => {
+  try {
+    await app.ready();
+
+    let payload: string | undefined = undefined;
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      if (req.body !== undefined && req.body !== null) {
+        payload = typeof req.body === 'object' ? JSON.stringify(req.body) : String(req.body);
+      } else if (typeof req.on === 'function') {
+        payload = await new Promise<string>((resolve) => {
+          const chunks: any[] = [];
+          req.on('data', (chunk: any) => chunks.push(chunk));
+          req.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+          req.on('error', () => resolve(''));
+        });
+      }
     }
 
-    let resolved = false;
-    const finish = () => {
-      if (!resolved) {
-        resolved = true;
-        resolve();
+    const targetUrl =
+      (req.headers['x-matched-path'] as string) ||
+      (req.headers['x-invoke-path'] as string) ||
+      req.url ||
+      '/';
+
+    const response = await app.inject({
+      method: req.method || 'GET',
+      url: targetUrl,
+      headers: req.headers,
+      payload,
+    });
+
+    res.statusCode = response.statusCode;
+    for (const [key, value] of Object.entries(response.headers)) {
+      if (value !== undefined) {
+        res.setHeader(key, value);
       }
-    };
-
-    const originalEnd = res.end.bind(res);
-    res.end = (...args: any[]) => {
-      originalEnd(...args);
-      finish();
-    };
-
-    res.on('finish', finish);
-    res.on('close', finish);
-
-    (async () => {
-      try {
-        await app.ready();
-        app.server.emit('request', req, res);
-      } catch (err: unknown) {
-        console.error('Error during app.ready in serverless handler:', err);
-        if (!res.headersSent) {
-          res.statusCode = 500;
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({ error: 'Internal Server Error', message: String(err) }));
-        }
-        finish();
-      }
-    })();
-  });
+    }
+    res.end(response.rawPayload);
+  } catch (err: unknown) {
+    console.error('Error in serverless handler:', err);
+    if (!res.headersSent) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'application/json');
+      res.end(JSON.stringify({ error: 'Internal Server Error', message: String(err) }));
+    }
+  }
 };
 
 const serverHandler = Object.assign(handler, app);
