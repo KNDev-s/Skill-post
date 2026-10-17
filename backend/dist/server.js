@@ -25,7 +25,12 @@ app.get('/health', async () => ({
     service: 'kndevs-social-backend',
     timestamp: new Date().toISOString(),
 }));
-app.get('/public/slides/:postId/:file', async (request, reply) => {
+app.get('/api/health', async () => ({
+    status: 'ok',
+    service: 'kndevs-social-backend',
+    timestamp: new Date().toISOString(),
+}));
+const slideHandler = async (request, reply) => {
     const { postId, file } = request.params;
     const sanitizedPostId = path.basename(postId);
     const sanitizedFile = path.basename(file);
@@ -38,22 +43,25 @@ app.get('/public/slides/:postId/:file', async (request, reply) => {
     catch {
         return reply.status(404).send({ error: 'Image not found' });
     }
-});
+};
+app.get('/public/slides/:postId/:file', slideHandler);
+app.get('/slides/:postId/:file', slideHandler);
 await app.register(postRoutes, { prefix: '/api/v1' });
+await app.register(postRoutes, { prefix: '/v1' });
 await app.ready();
-// Em ambientes locais (não Vercel e não testes), escutar na porta
-if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+// Escuta na porta no ambiente local ou de contêiner/serviço longo
+if (process.env.NODE_ENV !== 'test') {
     const port = Number(process.env.PORT || config.port || 3001);
     try {
         const address = await app.listen({ port, host: '0.0.0.0' });
         app.log.info(`🚀 Servidor KNDev's Social Backend rodando em ${address}`);
     }
     catch (err) {
-        app.log.error(err);
+        app.log.warn(`Aviso de porta (ambiente serverless ou já em uso): ${err}`);
     }
 }
-// Handler para ambientes serverless (Vercel)
-export default async function handler(req, res) {
+// Handler para ambientes serverless (Vercel Functions)
+const handler = async (req, res) => {
     try {
         await app.ready();
         const response = await app.inject({
@@ -80,4 +88,5 @@ export default async function handler(req, res) {
             res.end(JSON.stringify({ error: 'Internal Server Error', message: String(err) }));
         }
     }
-}
+};
+export default Object.assign(handler, app);
