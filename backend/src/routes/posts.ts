@@ -43,6 +43,11 @@ export const postRoutes: FastifyPluginAsync = async (fastify) => {
     });
   });
 
+  // 0. GET /posts - Consultar lista de posts
+  fastify.get('/posts', async (request, reply) => {
+    return reply.send({ data: [] });
+  });
+
   // 1. POST /posts - Iniciar geração de carrossel
   fastify.post('/posts', async (request, reply) => {
     const idempotencyKey = request.headers['idempotency-key'] as string | undefined;
