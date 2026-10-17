@@ -9,19 +9,13 @@ export const app = Fastify({
   logger: process.env.NODE_ENV !== 'test',
 });
 
-// Registrar plugins e rotas imediatamente
-await app.register(fastifyCors, {
+// Registrar plugins e rotas imediatamente (síncrono no Fastify)
+app.register(fastifyCors, {
   origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Accept', 'Idempotency-Key'],
 });
-
-try {
-  await fs.mkdir(config.slidesDir, { recursive: true });
-} catch {
-  // Directory might already exist
-}
 
 app.get('/health', async () => ({
   status: 'ok',
@@ -52,9 +46,23 @@ const slideHandler = async (request: any, reply: any) => {
 app.get('/public/slides/:postId/:file', slideHandler);
 app.get('/slides/:postId/:file', slideHandler);
 
-await app.register(postRoutes, { prefix: '/api/v1' });
-await app.register(postRoutes, { prefix: '/v1' });
-await app.ready();
+app.register(postRoutes, { prefix: '/api/v1' });
+app.register(postRoutes, { prefix: '/v1' });
+
+let initPromise: Promise<void> | null = null;
+async function init(): Promise<void> {
+  if (!initPromise) {
+    initPromise = (async () => {
+      try {
+        await fs.mkdir(config.slidesDir, { recursive: true });
+      } catch {
+        // Ignora se já existir
+      }
+      await app.ready();
+    })();
+  }
+  return initPromise;
+}
 
 // Escuta na porta apenas localmente (fora da Vercel e fora de testes)
 if (
@@ -64,18 +72,20 @@ if (
   process.env.NODE_ENV !== 'production'
 ) {
   const port = Number(process.env.PORT || config.port || 3001);
-  try {
-    const address = await app.listen({ port, host: '0.0.0.0' });
-    app.log.info(`🚀 Servidor KNDev's Social Backend rodando em ${address}`);
-  } catch (err) {
-    app.log.error(err);
-  }
+  init().then(async () => {
+    try {
+      const address = await app.listen({ port, host: '0.0.0.0' });
+      app.log.info(`🚀 Servidor KNDev's Social Backend rodando em ${address}`);
+    } catch (err) {
+      app.log.error(err);
+    }
+  });
 }
 
 // Handler para ambientes serverless (Vercel Functions)
 const handler = async (req: any, res: any) => {
   try {
-    await app.ready();
+    await init();
     app.server.emit('request', req, res);
   } catch (err) {
     console.error('Error in serverless handler:', err);

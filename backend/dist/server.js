@@ -45494,19 +45494,19 @@ var X509WorkloadIdentityAuth = class {
   }
   /** Returns a guarded final dispatcher while preserving all existing request hook object identities. */
   fetch() {
-    return async (input, init = {}) => {
+    return async (input, init2 = {}) => {
       const target = assertX509APIOrigin(typeof input === "string" || input instanceof URL ? input : input.url);
-      assertX509FetchOptions(init);
-      this.assertRequest(init);
-      const approved = init.headers;
+      assertX509FetchOptions(init2);
+      this.assertRequest(init2);
+      const approved = init2.headers;
       if (!(approved instanceof Headers)) {
         throw new OpenAIError("X.509 workload identity must preserve its issued workload authorization.");
       }
       const headers = new Headers([...Headers.prototype.entries.call(approved)]);
       assertSafeHeaders(headers);
-      init.headers = headers;
-      init.redirect = "manual";
-      return await __classPrivateFieldGet(this, _X509WorkloadIdentityAuth_transport, "f").dispatch(target, init);
+      init2.headers = headers;
+      init2.redirect = "manual";
+      return await __classPrivateFieldGet(this, _X509WorkloadIdentityAuth_transport, "f").dispatch(target, init2);
     };
   }
 };
@@ -60443,12 +60443,12 @@ var OpenAI = class {
     page._thenUnwrap = guarded._thenUnwrap.bind(guarded);
     return page;
   }
-  async fetchWithAuth(url, init, timeout, controller, schemes = {
+  async fetchWithAuth(url, init2, timeout, controller, schemes = {
     bearerAuth: true,
     adminAPIKeyAuth: true
   }) {
     if (this._workloadIdentityAuth && !__classPrivateFieldGet(this, _OpenAI_x509Fetch, "f") && schemes.bearerAuth) {
-      const headers = init.headers;
+      const headers = init2.headers;
       const authHeader = headers.get("Authorization");
       if (authHeader === `Bearer ${WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}`) {
         const token = await this._workloadIdentityAuth.getToken();
@@ -60456,11 +60456,11 @@ var OpenAI = class {
       }
     }
     const fetchWithTimeout = __classPrivateFieldGet(this, _OpenAI_x509Fetch, "f") ? _a3.prototype.fetchWithTimeout : this.fetchWithTimeout;
-    const response = await fetchWithTimeout.call(this, url, init, timeout, controller);
+    const response = await fetchWithTimeout.call(this, url, init2, timeout, controller);
     return response;
   }
-  async fetchWithTimeout(url, init, ms, controller) {
-    const { signal, method, ...options } = init || {};
+  async fetchWithTimeout(url, init2, ms, controller) {
+    const { signal, method, ...options } = init2 || {};
     const abort = this._makeAbort(controller);
     const composed = !!signal && composedCallerSignals.get(controller) === signal;
     const cleanup = signal && !composed ? addRequestAbortListener(signal, abort, controller.signal) : void 0;
@@ -61663,16 +61663,12 @@ var postRoutes = async (fastify) => {
 var app = (0, import_fastify.default)({
   logger: process.env.NODE_ENV !== "test"
 });
-await app.register(import_cors.default, {
+app.register(import_cors.default, {
   origin: true,
   credentials: true,
   methods: ["GET", "POST", "PATCH", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Accept", "Idempotency-Key"]
 });
-try {
-  await fs3.mkdir(config.slidesDir, { recursive: true });
-} catch {
-}
 app.get("/health", async () => ({
   status: "ok",
   service: "kndevs-social-backend",
@@ -61698,21 +61694,35 @@ var slideHandler = async (request, reply) => {
 };
 app.get("/public/slides/:postId/:file", slideHandler);
 app.get("/slides/:postId/:file", slideHandler);
-await app.register(postRoutes, { prefix: "/api/v1" });
-await app.register(postRoutes, { prefix: "/v1" });
-await app.ready();
+app.register(postRoutes, { prefix: "/api/v1" });
+app.register(postRoutes, { prefix: "/v1" });
+var initPromise = null;
+async function init() {
+  if (!initPromise) {
+    initPromise = (async () => {
+      try {
+        await fs3.mkdir(config.slidesDir, { recursive: true });
+      } catch {
+      }
+      await app.ready();
+    })();
+  }
+  return initPromise;
+}
 if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME && process.env.NODE_ENV !== "test" && process.env.NODE_ENV !== "production") {
   const port = Number(process.env.PORT || config.port || 3001);
-  try {
-    const address = await app.listen({ port, host: "0.0.0.0" });
-    app.log.info(`\u{1F680} Servidor KNDev's Social Backend rodando em ${address}`);
-  } catch (err) {
-    app.log.error(err);
-  }
+  init().then(async () => {
+    try {
+      const address = await app.listen({ port, host: "0.0.0.0" });
+      app.log.info(`\u{1F680} Servidor KNDev's Social Backend rodando em ${address}`);
+    } catch (err) {
+      app.log.error(err);
+    }
+  });
 }
 var handler = async (req, res) => {
   try {
-    await app.ready();
+    await init();
     app.server.emit("request", req, res);
   } catch (err) {
     console.error("Error in serverless handler:", err);
