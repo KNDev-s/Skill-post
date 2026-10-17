@@ -1,3 +1,11 @@
-import serverHandler, { handler } from '../backend/dist/server.js';
-
-export default handler || serverHandler;
+export default function handler(req, res) {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'application/json');
+  res.end(
+    JSON.stringify({
+      status: 'ok',
+      service: 'kndevs-social-backend',
+      timestamp: new Date().toISOString(),
+    }),
+  );
+}
