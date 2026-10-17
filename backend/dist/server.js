@@ -18572,12 +18572,12 @@ var require_utils = __commonJS({
         uriTokens.push(host);
       }
       if (typeof component.port === "number" || typeof component.port === "string") {
-        const port = String(component.port);
-        if (!isPort(port)) {
+        const port2 = String(component.port);
+        if (!isPort(port2)) {
           throw new TypeError("URI port is malformed.");
         }
         uriTokens.push(":");
-        uriTokens.push(port);
+        uriTokens.push(port2);
       }
       return uriTokens.length ? uriTokens.join("") : void 0;
     }
@@ -24090,12 +24090,12 @@ var require_utils2 = __commonJS({
         uriTokens.push(host);
       }
       if (typeof component.port === "number" || typeof component.port === "string") {
-        const port = String(component.port);
-        if (!isPort(port)) {
+        const port2 = String(component.port);
+        if (!isPort(port2)) {
           throw new TypeError("URI port is malformed.");
         }
         uriTokens.push(":");
-        uriTokens.push(port);
+        uriTokens.push(port2);
       }
       return uriTokens.length ? uriTokens.join("") : void 0;
     }
@@ -46825,19 +46825,19 @@ var X509WorkloadIdentityAuth = class {
   }
   /** Returns a guarded final dispatcher while preserving all existing request hook object identities. */
   fetch() {
-    return async (input, init2 = {}) => {
+    return async (input, init = {}) => {
       const target = assertX509APIOrigin(typeof input === "string" || input instanceof URL ? input : input.url);
-      assertX509FetchOptions(init2);
-      this.assertRequest(init2);
-      const approved = init2.headers;
+      assertX509FetchOptions(init);
+      this.assertRequest(init);
+      const approved = init.headers;
       if (!(approved instanceof Headers)) {
         throw new OpenAIError("X.509 workload identity must preserve its issued workload authorization.");
       }
       const headers = new Headers([...Headers.prototype.entries.call(approved)]);
       assertSafeHeaders(headers);
-      init2.headers = headers;
-      init2.redirect = "manual";
-      return await __classPrivateFieldGet(this, _X509WorkloadIdentityAuth_transport, "f").dispatch(target, init2);
+      init.headers = headers;
+      init.redirect = "manual";
+      return await __classPrivateFieldGet(this, _X509WorkloadIdentityAuth_transport, "f").dispatch(target, init);
     };
   }
 };
@@ -65998,12 +65998,12 @@ var OpenAI = class {
     page._thenUnwrap = guarded._thenUnwrap.bind(guarded);
     return page;
   }
-  async fetchWithAuth(url, init2, timeout, controller, schemes = {
+  async fetchWithAuth(url, init, timeout, controller, schemes = {
     bearerAuth: true,
     adminAPIKeyAuth: true
   }) {
     if (this._workloadIdentityAuth && !__classPrivateFieldGet(this, _OpenAI_x509Fetch, "f") && schemes.bearerAuth) {
-      const headers = init2.headers;
+      const headers = init.headers;
       const authHeader = headers.get("Authorization");
       if (authHeader === `Bearer ${WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER}`) {
         const token = await this._workloadIdentityAuth.getToken();
@@ -66011,11 +66011,11 @@ var OpenAI = class {
       }
     }
     const fetchWithTimeout = __classPrivateFieldGet(this, _OpenAI_x509Fetch, "f") ? _a3.prototype.fetchWithTimeout : this.fetchWithTimeout;
-    const response = await fetchWithTimeout.call(this, url, init2, timeout, controller);
+    const response = await fetchWithTimeout.call(this, url, init, timeout, controller);
     return response;
   }
-  async fetchWithTimeout(url, init2, ms, controller) {
-    const { signal, method, ...options } = init2 || {};
+  async fetchWithTimeout(url, init, ms, controller) {
+    const { signal, method, ...options } = init || {};
     const abort = this._makeAbort(controller);
     const composed = !!signal && composedCallerSignals.get(controller) === signal;
     const cleanup = signal && !composed ? addRequestAbortListener(signal, abort, controller.signal) : void 0;
@@ -67511,33 +67511,24 @@ app.get("/public/slides/:postId/:file", slideHandler);
 app.get("/slides/:postId/:file", slideHandler);
 app.register(postRoutes, { prefix: "/api/v1" });
 app.register(postRoutes, { prefix: "/v1" });
-var initPromise = null;
-async function init() {
-  if (!initPromise) {
-    initPromise = (async () => {
-      try {
-        await fs3.mkdir(config.slidesDir, { recursive: true });
-      } catch {
-      }
-      await app.ready();
-    })();
-  }
-  return initPromise;
+try {
+  fs3.mkdir(config.slidesDir, { recursive: true }).catch(() => {
+  });
+} catch {
 }
-if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME && process.env.NODE_ENV !== "test" && process.env.NODE_ENV !== "production") {
-  const port = Number(process.env.PORT || config.port || 3001);
-  init().then(async () => {
-    try {
-      const address = await app.listen({ port, host: "0.0.0.0" });
-      app.log.info(`\u{1F680} Servidor KNDev's Social Backend rodando em ${address}`);
-    } catch (err) {
+var port = Number(process.env.PORT || config.port || 3001);
+if (process.env.NODE_ENV !== "test") {
+  app.listen({ port, host: "0.0.0.0" }, (err, address) => {
+    if (err) {
       app.log.error(err);
+    } else {
+      app.log.info(`\u{1F680} Servidor KNDev's Social Backend rodando em ${address}`);
     }
   });
 }
 var handler = async (req, res) => {
   try {
-    await init();
+    await app.ready();
     app.server.emit("request", req, res);
   } catch (err) {
     console.error("Error in serverless handler:", err);

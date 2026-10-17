@@ -49,35 +49,19 @@ app.get('/slides/:postId/:file', slideHandler);
 app.register(postRoutes, { prefix: '/api/v1' });
 app.register(postRoutes, { prefix: '/v1' });
 
-let initPromise: Promise<void> | null = null;
-async function init(): Promise<void> {
-  if (!initPromise) {
-    initPromise = (async () => {
-      try {
-        await fs.mkdir(config.slidesDir, { recursive: true });
-      } catch {
-        // Ignora se já existir
-      }
-      await app.ready();
-    })();
-  }
-  return initPromise;
+try {
+  fs.mkdir(config.slidesDir, { recursive: true }).catch(() => {});
+} catch {
+  // Ignora se falhar
 }
 
-// Escuta na porta apenas localmente (fora da Vercel e fora de testes)
-if (
-  !process.env.VERCEL &&
-  !process.env.AWS_LAMBDA_FUNCTION_NAME &&
-  process.env.NODE_ENV !== 'test' &&
-  process.env.NODE_ENV !== 'production'
-) {
-  const port = Number(process.env.PORT || config.port || 3001);
-  init().then(async () => {
-    try {
-      const address = await app.listen({ port, host: '0.0.0.0' });
-      app.log.info(`🚀 Servidor KNDev's Social Backend rodando em ${address}`);
-    } catch (err) {
+const port = Number(process.env.PORT || config.port || 3001);
+if (process.env.NODE_ENV !== 'test') {
+  app.listen({ port, host: '0.0.0.0' }, (err, address) => {
+    if (err) {
       app.log.error(err);
+    } else {
+      app.log.info(`🚀 Servidor KNDev's Social Backend rodando em ${address}`);
     }
   });
 }
@@ -85,7 +69,7 @@ if (
 // Handler para ambientes serverless (Vercel Functions)
 const handler = async (req: any, res: any) => {
   try {
-    await init();
+    await app.ready();
     app.server.emit('request', req, res);
   } catch (err) {
     console.error('Error in serverless handler:', err);
