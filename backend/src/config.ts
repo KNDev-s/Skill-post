@@ -7,10 +7,12 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
-const instagramApiHost = process.env.INSTAGRAM_API_HOST || 'graph.facebook.com';
-if (!['graph.facebook.com', 'graph.instagram.com'].includes(instagramApiHost)) {
-  throw new Error('INSTAGRAM_API_HOST deve ser graph.facebook.com ou graph.instagram.com.');
-}
+const rawHost = (process.env.INSTAGRAM_API_HOST || 'graph.instagram.com')
+  .replace(/['"]/g, '')
+  .trim();
+const instagramApiHost = ['graph.facebook.com', 'graph.instagram.com'].includes(rawHost)
+  ? rawHost
+  : 'graph.instagram.com';
 
 export const config = {
   port: Number(process.env.PORT || 3001),
