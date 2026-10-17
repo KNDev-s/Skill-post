@@ -54,7 +54,11 @@ export async function init() {
 }
 
 // Standalone listener for local dev
-if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+if (
+  !process.env.VERCEL &&
+  process.env.NODE_ENV !== 'production' &&
+  process.env.NODE_ENV !== 'test'
+) {
   await init();
   const port = Number(process.env.PORT || config.port || 3001);
   try {
@@ -69,12 +73,7 @@ if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
 export default async function handler(req: any, res: any) {
   try {
     await init();
-    await new Promise<void>((resolve, reject) => {
-      res.on('finish', resolve);
-      res.on('close', resolve);
-      res.on('error', reject);
-      app.server.emit('request', req, res);
-    });
+    app.server.emit('request', req, res);
   } catch (err) {
     console.error('Error in serverless handler:', err);
     if (!res.headersSent) {

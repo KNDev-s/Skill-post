@@ -1,7 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Resvg } from '@resvg/resvg-js';
 import { config } from '../config.js';
 import type { Slide } from '../types.js';
 
@@ -179,6 +178,7 @@ export async function renderSlideImage(
 
   const logoUri = await getLogoDataUri();
   const svgContent = generateSlideSvg(slide, index, total, logoUri);
+  const { Resvg } = await import('@resvg/resvg-js');
   const resvg = new Resvg(svgContent, {
     fitTo: {
       mode: 'width',

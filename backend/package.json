@@ -2,7 +2,7 @@
   "name": "kndevs-social-backend",
   "version": "0.1.0",
   "type": "module",
-  "main": "dist/server.js",
+  "main": "src/server.ts",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
