@@ -55,6 +55,21 @@ try {
   // Ignora se falhar
 }
 
+// Suporte para bodies pré-processados em ambientes serverless (Vercel)
+app.addContentTypeParser('application/json', { parseAs: 'string' }, (req, body, done) => {
+  try {
+    const rawReq = req.raw as any;
+    if (rawReq.body && typeof rawReq.body === 'object') {
+      return done(null, rawReq.body);
+    }
+    const json = typeof body === 'string' ? (body ? JSON.parse(body) : {}) : body;
+    done(null, json);
+  } catch (err: any) {
+    err.statusCode = 400;
+    done(err, undefined);
+  }
+});
+
 const isServerless =
   Boolean(process.env.VERCEL) ||
   Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) ||
@@ -73,14 +88,28 @@ if (!isServerless && process.env.NODE_ENV !== 'test') {
 
 // Handler para ambientes serverless (Vercel Functions)
 const handler = (req: any, res: any): Promise<void> => {
-  return new Promise<void>((resolve, reject) => {
+  return new Promise<void>((resolve) => {
     if (res.writableEnded || res.finished) {
       resolve();
       return;
     }
-    res.on('finish', resolve);
-    res.on('close', resolve);
-    res.on('error', reject);
+
+    let resolved = false;
+    const finish = () => {
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    };
+
+    const originalEnd = res.end.bind(res);
+    res.end = (...args: any[]) => {
+      originalEnd(...args);
+      finish();
+    };
+
+    res.on('finish', finish);
+    res.on('close', finish);
 
     (async () => {
       try {
@@ -93,7 +122,7 @@ const handler = (req: any, res: any): Promise<void> => {
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify({ error: 'Internal Server Error', message: String(err) }));
         }
-        resolve();
+        finish();
       }
     })();
   });

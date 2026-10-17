@@ -67516,6 +67516,19 @@ try {
   });
 } catch {
 }
+app.addContentTypeParser("application/json", { parseAs: "string" }, (req, body, done) => {
+  try {
+    const rawReq = req.raw;
+    if (rawReq.body && typeof rawReq.body === "object") {
+      return done(null, rawReq.body);
+    }
+    const json = typeof body === "string" ? body ? JSON.parse(body) : {} : body;
+    done(null, json);
+  } catch (err) {
+    err.statusCode = 400;
+    done(err, void 0);
+  }
+});
 var isServerless = Boolean(process.env.VERCEL) || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) || Boolean(process.env.LAMBDA_TASK_ROOT);
 var port = Number(process.env.PORT || config.port || 3001);
 if (!isServerless && process.env.NODE_ENV !== "test") {
@@ -67528,14 +67541,25 @@ if (!isServerless && process.env.NODE_ENV !== "test") {
   });
 }
 var handler = (req, res) => {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (res.writableEnded || res.finished) {
       resolve();
       return;
     }
-    res.on("finish", resolve);
-    res.on("close", resolve);
-    res.on("error", reject);
+    let resolved = false;
+    const finish = () => {
+      if (!resolved) {
+        resolved = true;
+        resolve();
+      }
+    };
+    const originalEnd = res.end.bind(res);
+    res.end = (...args) => {
+      originalEnd(...args);
+      finish();
+    };
+    res.on("finish", finish);
+    res.on("close", finish);
     (async () => {
       try {
         await app.ready();
@@ -67547,7 +67571,7 @@ var handler = (req, res) => {
           res.setHeader("Content-Type", "application/json");
           res.end(JSON.stringify({ error: "Internal Server Error", message: String(err) }));
         }
-        resolve();
+        finish();
       }
     })();
   });
