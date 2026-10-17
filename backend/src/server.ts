@@ -111,10 +111,13 @@ const handler = async (req: any, res: any): Promise<void> => {
       req.url ||
       '/';
 
+    const headers = { ...req.headers };
+    delete headers['content-length'];
+
     const response = await app.inject({
       method: req.method || 'GET',
       url: targetUrl,
-      headers: req.headers,
+      headers,
       payload,
     });
 

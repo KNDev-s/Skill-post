@@ -67557,10 +67557,12 @@ var handler = async (req, res) => {
       }
     }
     const targetUrl = req.headers["x-matched-path"] || req.headers["x-invoke-path"] || req.url || "/";
+    const headers = { ...req.headers };
+    delete headers["content-length"];
     const response = await app.inject({
       method: req.method || "GET",
       url: targetUrl,
-      headers: req.headers,
+      headers,
       payload
     });
     res.statusCode = response.statusCode;
