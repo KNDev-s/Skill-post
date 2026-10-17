@@ -7,9 +7,8 @@
     },
     "backend": {
       "root": "backend",
-      "runtime": "node",
-      "buildCommand": "npm run build",
-      "entrypoint": "dist/server.js"
+      "framework": "fastify",
+      "entrypoint": "src/server.ts"
     }
   },
   "rewrites": [

@@ -97,5 +97,7 @@ const handler = async (req: any, res: any) => {
   }
 };
 
-export { handler };
-export default handler;
+const serverHandler = Object.assign(handler, app);
+
+export { handler, serverHandler };
+export default serverHandler;
