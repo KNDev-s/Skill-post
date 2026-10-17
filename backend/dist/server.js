@@ -11,11 +11,7 @@ var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require
   throw Error('Dynamic require of "' + x + '" is not supported');
 });
 var __commonJS = (cb, mod) => function __require2() {
-  try {
-    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-  } catch (e) {
-    throw mod = 0, e;
-  }
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
 var __export = (target, all) => {
   for (var name in all)
@@ -110,9 +106,9 @@ var require_plugin = __commonJS({
         autoName = true;
         options.name = getPluginName(fn) + "-auto-" + count++;
       }
-      fn[/* @__PURE__ */ Symbol.for("skip-override")] = options.encapsulate !== true;
-      fn[/* @__PURE__ */ Symbol.for("fastify.display-name")] = options.name;
-      fn[/* @__PURE__ */ Symbol.for("plugin-meta")] = options;
+      fn[Symbol.for("skip-override")] = options.encapsulate !== true;
+      fn[Symbol.for("fastify.display-name")] = options.name;
+      fn[Symbol.for("plugin-meta")] = options;
       if (!fn.default) {
         fn.default = fn;
       }
@@ -544,7 +540,7 @@ var require_lru_cache = __commonJS({
       return proxy;
     };
     if (typeof Symbol !== "undefined")
-      LRUCache.prototype[/* @__PURE__ */ Symbol.for("nodejs.util.inspect.custom")] = LRUCache.prototype.inspect;
+      LRUCache.prototype[Symbol.for("nodejs.util.inspect.custom")] = LRUCache.prototype.inspect;
     LRUCache.from = function(iterable, Keys, Values, capacity) {
       if (arguments.length < 2) {
         capacity = iterables.guessLength(iterable);
@@ -1213,7 +1209,7 @@ var require_error = __commonJS({
     function toString() {
       return `${this.name} [${this.code}]: ${this.message}`;
     }
-    var FastifyGenericErrorSymbol = /* @__PURE__ */ Symbol.for("fastify-error-generic");
+    var FastifyGenericErrorSymbol = Symbol.for("fastify-error-generic");
     function createError(code, message, statusCode = 500, Base = Error, captureStackTrace = createError.captureStackTrace) {
       const shouldCreateFastifyGenericError = code === FastifyGenericErrorSymbol;
       if (shouldCreateFastifyGenericError) {
@@ -1223,7 +1219,7 @@ var require_error = __commonJS({
       if (!message) throw new Error("Fastify error message must not be empty");
       code = code.toUpperCase();
       !statusCode && (statusCode = void 0);
-      const FastifySpecificErrorSymbol = /* @__PURE__ */ Symbol.for(`fastify-error ${code}`);
+      const FastifySpecificErrorSymbol = Symbol.for(`fastify-error ${code}`);
       function FastifyError(...args) {
         if (!new.target) {
           return new FastifyError(...args);
@@ -1336,15 +1332,15 @@ var require_errors = __commonJS({
 var require_symbols = __commonJS({
   "node_modules/avvio/lib/symbols.js"(exports, module) {
     "use strict";
-    var kAvvio = /* @__PURE__ */ Symbol("avvio.Boot");
-    var kIsOnCloseHandler = /* @__PURE__ */ Symbol("isOnCloseHandler");
-    var kThenifyDoNotWrap = /* @__PURE__ */ Symbol("avvio.ThenifyDoNotWrap");
-    var kUntrackNode = /* @__PURE__ */ Symbol("avvio.TimeTree.untrackNode");
-    var kTrackNode = /* @__PURE__ */ Symbol("avvio.TimeTree.trackNode");
-    var kGetParent = /* @__PURE__ */ Symbol("avvio.TimeTree.getParent");
-    var kGetNode = /* @__PURE__ */ Symbol("avvio.TimeTree.getNode");
-    var kAddNode = /* @__PURE__ */ Symbol("avvio.TimeTree.addNode");
-    var kPluginMeta = /* @__PURE__ */ Symbol.for("plugin-meta");
+    var kAvvio = Symbol("avvio.Boot");
+    var kIsOnCloseHandler = Symbol("isOnCloseHandler");
+    var kThenifyDoNotWrap = Symbol("avvio.ThenifyDoNotWrap");
+    var kUntrackNode = Symbol("avvio.TimeTree.untrackNode");
+    var kTrackNode = Symbol("avvio.TimeTree.trackNode");
+    var kGetParent = Symbol("avvio.TimeTree.getParent");
+    var kGetNode = Symbol("avvio.TimeTree.getNode");
+    var kAddNode = Symbol("avvio.TimeTree.addNode");
+    var kPluginMeta = Symbol.for("plugin-meta");
     module.exports = {
       kAvvio,
       kIsOnCloseHandler,
@@ -2350,73 +2346,73 @@ var require_symbols2 = __commonJS({
   "node_modules/fastify/lib/symbols.js"(exports, module) {
     "use strict";
     var keys = {
-      kAvvioBoot: /* @__PURE__ */ Symbol("fastify.avvioBoot"),
-      kChildren: /* @__PURE__ */ Symbol("fastify.children"),
-      kServerBindings: /* @__PURE__ */ Symbol("fastify.serverBindings"),
-      kBodyLimit: /* @__PURE__ */ Symbol("fastify.bodyLimit"),
-      kSupportedHTTPMethods: /* @__PURE__ */ Symbol("fastify.acceptedHTTPMethods"),
-      kRoutePrefix: /* @__PURE__ */ Symbol("fastify.routePrefix"),
-      kLogLevel: /* @__PURE__ */ Symbol("fastify.logLevel"),
-      kLogSerializers: /* @__PURE__ */ Symbol("fastify.logSerializers"),
-      kHooks: /* @__PURE__ */ Symbol("fastify.hooks"),
-      kContentTypeParser: /* @__PURE__ */ Symbol("fastify.contentTypeParser"),
-      kState: /* @__PURE__ */ Symbol("fastify.state"),
-      kOptions: /* @__PURE__ */ Symbol("fastify.options"),
-      kPluginNameChain: /* @__PURE__ */ Symbol("fastify.pluginNameChain"),
-      kRouteContext: /* @__PURE__ */ Symbol("fastify.context"),
-      kGenReqId: /* @__PURE__ */ Symbol("fastify.genReqId"),
-      kHttp2ServerSessions: /* @__PURE__ */ Symbol("fastify.http2ServerSessions"),
+      kAvvioBoot: Symbol("fastify.avvioBoot"),
+      kChildren: Symbol("fastify.children"),
+      kServerBindings: Symbol("fastify.serverBindings"),
+      kBodyLimit: Symbol("fastify.bodyLimit"),
+      kSupportedHTTPMethods: Symbol("fastify.acceptedHTTPMethods"),
+      kRoutePrefix: Symbol("fastify.routePrefix"),
+      kLogLevel: Symbol("fastify.logLevel"),
+      kLogSerializers: Symbol("fastify.logSerializers"),
+      kHooks: Symbol("fastify.hooks"),
+      kContentTypeParser: Symbol("fastify.contentTypeParser"),
+      kState: Symbol("fastify.state"),
+      kOptions: Symbol("fastify.options"),
+      kPluginNameChain: Symbol("fastify.pluginNameChain"),
+      kRouteContext: Symbol("fastify.context"),
+      kGenReqId: Symbol("fastify.genReqId"),
+      kHttp2ServerSessions: Symbol("fastify.http2ServerSessions"),
       // Schema
-      kSchemaController: /* @__PURE__ */ Symbol("fastify.schemaController"),
-      kSchemaHeaders: /* @__PURE__ */ Symbol("headers-schema"),
-      kSchemaParams: /* @__PURE__ */ Symbol("params-schema"),
-      kSchemaQuerystring: /* @__PURE__ */ Symbol("querystring-schema"),
-      kSchemaBody: /* @__PURE__ */ Symbol("body-schema"),
-      kSchemaResponse: /* @__PURE__ */ Symbol("response-schema"),
-      kSchemaErrorFormatter: /* @__PURE__ */ Symbol("fastify.schemaErrorFormatter"),
-      kSchemaVisited: /* @__PURE__ */ Symbol("fastify.schemas.visited"),
+      kSchemaController: Symbol("fastify.schemaController"),
+      kSchemaHeaders: Symbol("headers-schema"),
+      kSchemaParams: Symbol("params-schema"),
+      kSchemaQuerystring: Symbol("querystring-schema"),
+      kSchemaBody: Symbol("body-schema"),
+      kSchemaResponse: Symbol("response-schema"),
+      kSchemaErrorFormatter: Symbol("fastify.schemaErrorFormatter"),
+      kSchemaVisited: Symbol("fastify.schemas.visited"),
       // Request
-      kRequest: /* @__PURE__ */ Symbol("fastify.Request"),
-      kRequestPayloadStream: /* @__PURE__ */ Symbol("fastify.RequestPayloadStream"),
-      kRequestAcceptVersion: /* @__PURE__ */ Symbol("fastify.RequestAcceptVersion"),
-      kRequestCacheValidateFns: /* @__PURE__ */ Symbol("fastify.request.cache.validateFns"),
-      kRequestContentType: /* @__PURE__ */ Symbol("fastify.request.contentType"),
-      kRequestOriginalUrl: /* @__PURE__ */ Symbol("fastify.request.originalUrl"),
-      kRequestSignal: /* @__PURE__ */ Symbol("fastify.request.signal"),
-      kHandlerTimeout: /* @__PURE__ */ Symbol("fastify.handlerTimeout"),
-      kTimeoutTimer: /* @__PURE__ */ Symbol("fastify.request.timeoutTimer"),
-      kOnAbort: /* @__PURE__ */ Symbol("fastify.request.onAbort"),
+      kRequest: Symbol("fastify.Request"),
+      kRequestPayloadStream: Symbol("fastify.RequestPayloadStream"),
+      kRequestAcceptVersion: Symbol("fastify.RequestAcceptVersion"),
+      kRequestCacheValidateFns: Symbol("fastify.request.cache.validateFns"),
+      kRequestContentType: Symbol("fastify.request.contentType"),
+      kRequestOriginalUrl: Symbol("fastify.request.originalUrl"),
+      kRequestSignal: Symbol("fastify.request.signal"),
+      kHandlerTimeout: Symbol("fastify.handlerTimeout"),
+      kTimeoutTimer: Symbol("fastify.request.timeoutTimer"),
+      kOnAbort: Symbol("fastify.request.onAbort"),
       // 404
-      kFourOhFour: /* @__PURE__ */ Symbol("fastify.404"),
-      kCanSetNotFoundHandler: /* @__PURE__ */ Symbol("fastify.canSetNotFoundHandler"),
-      kFourOhFourLevelInstance: /* @__PURE__ */ Symbol("fastify.404LogLevelInstance"),
-      kFourOhFourContext: /* @__PURE__ */ Symbol("fastify.404ContextKey"),
-      kDefaultJsonParse: /* @__PURE__ */ Symbol("fastify.defaultJSONParse"),
+      kFourOhFour: Symbol("fastify.404"),
+      kCanSetNotFoundHandler: Symbol("fastify.canSetNotFoundHandler"),
+      kFourOhFourLevelInstance: Symbol("fastify.404LogLevelInstance"),
+      kFourOhFourContext: Symbol("fastify.404ContextKey"),
+      kDefaultJsonParse: Symbol("fastify.defaultJSONParse"),
       // Reply
-      kReply: /* @__PURE__ */ Symbol("fastify.Reply"),
-      kReplySerializer: /* @__PURE__ */ Symbol("fastify.reply.serializer"),
-      kReplyIsError: /* @__PURE__ */ Symbol("fastify.reply.isError"),
-      kReplyHeaders: /* @__PURE__ */ Symbol("fastify.reply.headers"),
-      kReplyTrailers: /* @__PURE__ */ Symbol("fastify.reply.trailers"),
-      kReplyHasStatusCode: /* @__PURE__ */ Symbol("fastify.reply.hasStatusCode"),
-      kReplyHijacked: /* @__PURE__ */ Symbol("fastify.reply.hijacked"),
-      kReplyStartTime: /* @__PURE__ */ Symbol("fastify.reply.startTime"),
-      kReplyNextErrorHandler: /* @__PURE__ */ Symbol("fastify.reply.nextErrorHandler"),
-      kReplyEndTime: /* @__PURE__ */ Symbol("fastify.reply.endTime"),
-      kReplyErrorHandlerCalled: /* @__PURE__ */ Symbol("fastify.reply.errorHandlerCalled"),
-      kReplyIsRunningOnErrorHook: /* @__PURE__ */ Symbol("fastify.reply.isRunningOnErrorHook"),
-      kReplySerializerDefault: /* @__PURE__ */ Symbol("fastify.replySerializerDefault"),
-      kReplyCacheSerializeFns: /* @__PURE__ */ Symbol("fastify.reply.cache.serializeFns"),
+      kReply: Symbol("fastify.Reply"),
+      kReplySerializer: Symbol("fastify.reply.serializer"),
+      kReplyIsError: Symbol("fastify.reply.isError"),
+      kReplyHeaders: Symbol("fastify.reply.headers"),
+      kReplyTrailers: Symbol("fastify.reply.trailers"),
+      kReplyHasStatusCode: Symbol("fastify.reply.hasStatusCode"),
+      kReplyHijacked: Symbol("fastify.reply.hijacked"),
+      kReplyStartTime: Symbol("fastify.reply.startTime"),
+      kReplyNextErrorHandler: Symbol("fastify.reply.nextErrorHandler"),
+      kReplyEndTime: Symbol("fastify.reply.endTime"),
+      kReplyErrorHandlerCalled: Symbol("fastify.reply.errorHandlerCalled"),
+      kReplyIsRunningOnErrorHook: Symbol("fastify.reply.isRunningOnErrorHook"),
+      kReplySerializerDefault: Symbol("fastify.replySerializerDefault"),
+      kReplyCacheSerializeFns: Symbol("fastify.reply.cache.serializeFns"),
       // This symbol is only meant to be used for fastify tests and should not be used for any other purpose
-      kTestInternals: /* @__PURE__ */ Symbol("fastify.testInternals"),
-      kErrorHandler: /* @__PURE__ */ Symbol("fastify.errorHandler"),
-      kErrorHandlerAlreadySet: /* @__PURE__ */ Symbol("fastify.errorHandlerAlreadySet"),
-      kChildLoggerFactory: /* @__PURE__ */ Symbol("fastify.childLoggerFactory"),
-      kHasBeenDecorated: /* @__PURE__ */ Symbol("fastify.hasBeenDecorated"),
-      kKeepAliveConnections: /* @__PURE__ */ Symbol("fastify.keepAliveConnections"),
-      kRouteByFastify: /* @__PURE__ */ Symbol("fastify.routeByFastify"),
-      kLogController: /* @__PURE__ */ Symbol("fastify.logController"),
-      kDiagnosticsStore: /* @__PURE__ */ Symbol("fastify.diagnosticsStore")
+      kTestInternals: Symbol("fastify.testInternals"),
+      kErrorHandler: Symbol("fastify.errorHandler"),
+      kErrorHandlerAlreadySet: Symbol("fastify.errorHandlerAlreadySet"),
+      kChildLoggerFactory: Symbol("fastify.childLoggerFactory"),
+      kHasBeenDecorated: Symbol("fastify.hasBeenDecorated"),
+      kKeepAliveConnections: Symbol("fastify.keepAliveConnections"),
+      kRouteByFastify: Symbol("fastify.routeByFastify"),
+      kLogController: Symbol("fastify.logController"),
+      kDiagnosticsStore: Symbol("fastify.diagnosticsStore")
     };
     module.exports = keys;
   }
@@ -2427,8 +2423,8 @@ var require_process_warning = __commonJS({
   "node_modules/process-warning/index.js"(exports, module) {
     "use strict";
     var { format } = __require("node:util");
-    var kWarningFn = /* @__PURE__ */ Symbol("process-warning.fn");
-    var kWarningSpyData = /* @__PURE__ */ Symbol("process-warning.spyData");
+    var kWarningFn = Symbol("process-warning.fn");
+    var kWarningSpyData = Symbol("process-warning.spyData");
     function spyWarning(warning) {
       if (warning[kWarningSpyData] === null) {
         const warningFn = warning[kWarningFn];
@@ -5287,7 +5283,7 @@ var require_handle_request = __commonJS({
       }
     }
     module.exports = handleRequest;
-    module.exports[/* @__PURE__ */ Symbol.for("internals")] = { handler: handler2, preHandlerCallback };
+    module.exports[Symbol.for("internals")] = { handler: handler2, preHandlerCallback };
   }
 });
 
@@ -6920,8 +6916,8 @@ var require_err_helpers = __commonJS({
 var require_err_proto = __commonJS({
   "node_modules/pino-std-serializers/lib/err-proto.js"(exports, module) {
     "use strict";
-    var seen = /* @__PURE__ */ Symbol("circular-ref-tag");
-    var rawSymbol = /* @__PURE__ */ Symbol("pino-raw-err-ref");
+    var seen = Symbol("circular-ref-tag");
+    var rawSymbol = Symbol("pino-raw-err-ref");
     var pinoErrProto = Object.create({}, {
       type: {
         enumerable: true,
@@ -7058,7 +7054,7 @@ var require_req = __commonJS({
       mapHttpRequest,
       reqSerializer
     };
-    var rawSymbol = /* @__PURE__ */ Symbol("pino-raw-req-ref");
+    var rawSymbol = Symbol("pino-raw-req-ref");
     var pinoReqProto = Object.create({}, {
       id: {
         enumerable: true,
@@ -7153,7 +7149,7 @@ var require_res = __commonJS({
       mapHttpResponse,
       resSerializer
     };
-    var rawSymbol = /* @__PURE__ */ Symbol("pino-raw-res-ref");
+    var rawSymbol = Symbol("pino-raw-res-ref");
     var pinoResProto = Object.create({}, {
       statusCode: {
         enumerable: true,
@@ -7395,7 +7391,7 @@ var require_redact = __commonJS({
       }
       return true;
     }
-    var PATH_NOT_FOUND = /* @__PURE__ */ Symbol("PATH_NOT_FOUND");
+    var PATH_NOT_FOUND = Symbol("PATH_NOT_FOUND");
     function getValueIfExists(obj, parts) {
       let current = obj;
       for (const part of parts) {
@@ -7696,37 +7692,37 @@ var require_redact = __commonJS({
 var require_symbols3 = __commonJS({
   "node_modules/pino/lib/symbols.js"(exports, module) {
     "use strict";
-    var setLevelSym = /* @__PURE__ */ Symbol("pino.setLevel");
-    var getLevelSym = /* @__PURE__ */ Symbol("pino.getLevel");
-    var levelValSym = /* @__PURE__ */ Symbol("pino.levelVal");
-    var levelCompSym = /* @__PURE__ */ Symbol("pino.levelComp");
-    var useLevelLabelsSym = /* @__PURE__ */ Symbol("pino.useLevelLabels");
-    var useOnlyCustomLevelsSym = /* @__PURE__ */ Symbol("pino.useOnlyCustomLevels");
-    var mixinSym = /* @__PURE__ */ Symbol("pino.mixin");
-    var lsCacheSym = /* @__PURE__ */ Symbol("pino.lsCache");
-    var chindingsSym = /* @__PURE__ */ Symbol("pino.chindings");
-    var asJsonSym = /* @__PURE__ */ Symbol("pino.asJson");
-    var writeSym = /* @__PURE__ */ Symbol("pino.write");
-    var redactFmtSym = /* @__PURE__ */ Symbol("pino.redactFmt");
-    var timeSym = /* @__PURE__ */ Symbol("pino.time");
-    var timeSliceIndexSym = /* @__PURE__ */ Symbol("pino.timeSliceIndex");
-    var streamSym = /* @__PURE__ */ Symbol("pino.stream");
-    var stringifySym = /* @__PURE__ */ Symbol("pino.stringify");
-    var stringifySafeSym = /* @__PURE__ */ Symbol("pino.stringifySafe");
-    var stringifiersSym = /* @__PURE__ */ Symbol("pino.stringifiers");
-    var endSym = /* @__PURE__ */ Symbol("pino.end");
-    var formatOptsSym = /* @__PURE__ */ Symbol("pino.formatOpts");
-    var messageKeySym = /* @__PURE__ */ Symbol("pino.messageKey");
-    var errorKeySym = /* @__PURE__ */ Symbol("pino.errorKey");
-    var nestedKeySym = /* @__PURE__ */ Symbol("pino.nestedKey");
-    var nestedKeyStrSym = /* @__PURE__ */ Symbol("pino.nestedKeyStr");
-    var mixinMergeStrategySym = /* @__PURE__ */ Symbol("pino.mixinMergeStrategy");
-    var msgPrefixSym = /* @__PURE__ */ Symbol("pino.msgPrefix");
-    var wildcardFirstSym = /* @__PURE__ */ Symbol("pino.wildcardFirst");
-    var serializersSym = /* @__PURE__ */ Symbol.for("pino.serializers");
-    var formattersSym = /* @__PURE__ */ Symbol.for("pino.formatters");
-    var hooksSym = /* @__PURE__ */ Symbol.for("pino.hooks");
-    var needsMetadataGsym = /* @__PURE__ */ Symbol.for("pino.metadata");
+    var setLevelSym = Symbol("pino.setLevel");
+    var getLevelSym = Symbol("pino.getLevel");
+    var levelValSym = Symbol("pino.levelVal");
+    var levelCompSym = Symbol("pino.levelComp");
+    var useLevelLabelsSym = Symbol("pino.useLevelLabels");
+    var useOnlyCustomLevelsSym = Symbol("pino.useOnlyCustomLevels");
+    var mixinSym = Symbol("pino.mixin");
+    var lsCacheSym = Symbol("pino.lsCache");
+    var chindingsSym = Symbol("pino.chindings");
+    var asJsonSym = Symbol("pino.asJson");
+    var writeSym = Symbol("pino.write");
+    var redactFmtSym = Symbol("pino.redactFmt");
+    var timeSym = Symbol("pino.time");
+    var timeSliceIndexSym = Symbol("pino.timeSliceIndex");
+    var streamSym = Symbol("pino.stream");
+    var stringifySym = Symbol("pino.stringify");
+    var stringifySafeSym = Symbol("pino.stringifySafe");
+    var stringifiersSym = Symbol("pino.stringifiers");
+    var endSym = Symbol("pino.end");
+    var formatOptsSym = Symbol("pino.formatOpts");
+    var messageKeySym = Symbol("pino.messageKey");
+    var errorKeySym = Symbol("pino.errorKey");
+    var nestedKeySym = Symbol("pino.nestedKey");
+    var nestedKeyStrSym = Symbol("pino.nestedKeyStr");
+    var mixinMergeStrategySym = Symbol("pino.mixinMergeStrategy");
+    var msgPrefixSym = Symbol("pino.msgPrefix");
+    var wildcardFirstSym = Symbol("pino.wildcardFirst");
+    var serializersSym = Symbol.for("pino.serializers");
+    var formattersSym = Symbol.for("pino.formatters");
+    var hooksSym = Symbol.for("pino.hooks");
+    var needsMetadataGsym = Symbol.for("pino.metadata");
     module.exports = {
       setLevelSym,
       getLevelSym,
@@ -8858,7 +8854,7 @@ var require_thread_stream = __commonJS({
     } = require_indexes();
     var buffer = __require("buffer");
     var assert = __require("assert");
-    var kImpl = /* @__PURE__ */ Symbol("kImpl");
+    var kImpl = Symbol("kImpl");
     var MAX_STRING = buffer.constants.MAX_STRING_LENGTH;
     function noop2() {
     }
@@ -10965,7 +10961,7 @@ ${originalIndentation}`;
 var require_multistream = __commonJS({
   "node_modules/pino/lib/multistream.js"(exports, module) {
     "use strict";
-    var metadata = /* @__PURE__ */ Symbol.for("pino.metadata");
+    var metadata = Symbol.for("pino.metadata");
     var { DEFAULT_LEVELS } = require_constants();
     var DEFAULT_INFO_LEVEL = DEFAULT_LEVELS.info;
     function multistream(streamsArray, opts) {
@@ -11509,7 +11505,7 @@ var require_schemas = __commonJS({
     "use strict";
     var fastClone = require_rfdc()({ circles: false, proto: true });
     var { kSchemaVisited, kSchemaResponse } = require_symbols2();
-    var kFluentSchema = /* @__PURE__ */ Symbol.for("fluent-schema-object");
+    var kFluentSchema = Symbol.for("fluent-schema-object");
     var {
       FST_ERR_SCH_MISSING_ID,
       FST_ERR_SCH_ALREADY_PRESENT,
@@ -12203,7 +12199,7 @@ var require_reply = __commonJS({
       preHandlerHookRunner,
       preSerializationHookRunner
     } = require_hooks();
-    var internals = require_handle_request()[/* @__PURE__ */ Symbol.for("internals")];
+    var internals = require_handle_request()[Symbol.for("internals")];
     var loggerUtils = require_logger_factory();
     var now = loggerUtils.now;
     var { handleError } = require_error_handler();
@@ -25446,7 +25442,7 @@ var require_standalone2 = __commonJS({
 var require_ajv_compiler = __commonJS({
   "node_modules/@fastify/ajv-compiler/index.js"(exports, module) {
     "use strict";
-    var AjvReference = /* @__PURE__ */ Symbol.for("fastify.ajv-compiler.reference");
+    var AjvReference = Symbol.for("fastify.ajv-compiler.reference");
     var ValidatorCompiler = require_validator_compiler();
     var SerializerCompiler = require_serializer_compiler();
     function AjvCompiler(opts) {
@@ -25577,7 +25573,7 @@ var require_json_schema_ref_resolver = __commonJS({
   "node_modules/json-schema-ref-resolver/index.js"(exports, module) {
     "use strict";
     var { dequal: deepEqual } = require_dist2();
-    var jsonSchemaRefSymbol = /* @__PURE__ */ Symbol.for("json-schema-ref");
+    var jsonSchemaRefSymbol = Symbol.for("json-schema-ref");
     var RefResolver = class {
       #schemas;
       #derefSchemas;
@@ -30073,7 +30069,7 @@ var require_range = __commonJS({
 var require_comparator = __commonJS({
   "node_modules/semver/classes/comparator.js"(exports, module) {
     "use strict";
-    var ANY = /* @__PURE__ */ Symbol("SemVer ANY");
+    var ANY = Symbol("SemVer ANY");
     var Comparator = class _Comparator {
       static get ANY() {
         return ANY;
@@ -30760,7 +30756,7 @@ var require_plugin_utils = __commonJS({
     "use strict";
     var semver = require_semver2();
     var assert = __require("node:assert");
-    var kRegisteredPlugins = /* @__PURE__ */ Symbol.for("registered-plugin");
+    var kRegisteredPlugins = Symbol.for("registered-plugin");
     var {
       kTestInternals
     } = require_symbols2();
@@ -30773,7 +30769,7 @@ var require_plugin_utils = __commonJS({
     } = require_errors2();
     var rcRegex = /-(?:rc|pre|alpha).+$/u;
     function getMeta(fn) {
-      return fn[/* @__PURE__ */ Symbol.for("plugin-meta")];
+      return fn[Symbol.for("plugin-meta")];
     }
     function getPluginName(func) {
       const display = getDisplayName(func);
@@ -30799,10 +30795,10 @@ var require_plugin_utils = __commonJS({
       return func.toString().split("\n", 2).map((s) => s.trim()).join(" -- ");
     }
     function getDisplayName(fn) {
-      return fn[/* @__PURE__ */ Symbol.for("fastify.display-name")];
+      return fn[Symbol.for("fastify.display-name")];
     }
     function shouldSkipOverride(fn) {
-      return !!fn[/* @__PURE__ */ Symbol.for("skip-override")];
+      return !!fn[Symbol.for("skip-override")];
     }
     function checkDependencies(fn) {
       const meta = getMeta(fn);
@@ -32536,7 +32532,7 @@ var require_pretty_print = __commonJS({
     "use strict";
     var deepEqual = require_fast_deep_equal();
     var httpMethodStrategy = require_http_method();
-    var treeDataSymbol = /* @__PURE__ */ Symbol("treeData");
+    var treeDataSymbol = Symbol("treeData");
     function printObjectTree(obj, parentPrefix = "") {
       let tree = "";
       const keys = Object.keys(obj);
@@ -42047,7 +42043,7 @@ ZodNaN.create = (params) => {
     ...processCreateParams(params)
   });
 };
-var BRAND = /* @__PURE__ */ Symbol("zod_brand");
+var BRAND = Symbol("zod_brand");
 var ZodBranded = class extends ZodType {
   _parse(input) {
     const { ctx } = this._processInputParams(input);
@@ -44928,6 +44924,7 @@ var {
 } = state;
 
 // node_modules/openai/internal/auth/x509-transport-registry.mjs
+var x509TransportBrand = Symbol("X.509 transport capability");
 function resolveX509Transport(value) {
   if (!value || typeof value !== "object") {
     throw new OpenAIError("X.509 workload identity requires an approved X.509 transport capability.");
@@ -48879,8 +48876,8 @@ var MAX_SERIALIZED_PARSER_SCHEMA_NODES = 4096;
 var stringifyParserSchemaValue = JSON.stringify;
 var MAX_SERIALIZED_PARSER_SCHEMA_BYTES = 1024 * 1024;
 var MAX_SERIALIZED_PARSER_SCHEMA_DEPTH = 64;
-var OMITTED_SERIALIZED_PARSER_VALUE = /* @__PURE__ */ Symbol("omitted serialized parser value");
-var UNSAFE_SERIALIZED_PARSER_VALUE = /* @__PURE__ */ Symbol("unsafe serialized parser value");
+var OMITTED_SERIALIZED_PARSER_VALUE = Symbol("omitted serialized parser value");
+var UNSAFE_SERIALIZED_PARSER_VALUE = Symbol("unsafe serialized parser value");
 function canonicalSerializedParserSchema(value, budget) {
   const ancestors = /* @__PURE__ */ new WeakSet();
   const charge = (bytes) => {
@@ -59665,7 +59662,7 @@ async function resolveRealtimeAPIKey(client) {
 }
 
 // node_modules/openai/internal/provider.mjs
-var providerDefinitionsKey = /* @__PURE__ */ Symbol.for("openai.node.providerDefinitions.v1");
+var providerDefinitionsKey = Symbol.for("openai.node.providerDefinitions.v1");
 var providerGlobal = globalThis;
 var existingProviderDefinitions = providerGlobal[providerDefinitionsKey];
 var providerDefinitions = existingProviderDefinitions ?? /* @__PURE__ */ new WeakMap();
@@ -59697,7 +59694,7 @@ function isRunningInBrowserOrBrowserWorker() {
   return typeof scope.WorkerGlobalScope === "function" && scope instanceof scope.WorkerGlobalScope && typeof scope.WorkerNavigator === "function" && scope.navigator instanceof scope.WorkerNavigator && typeof scope.navigator?.userAgent === "string" && scope.navigator.userAgent !== "Cloudflare-Workers" && scope.process?.versions?.node === void 0 && scope.Deno === void 0 && scope.Bun === void 0 && scope.EdgeRuntime === void 0 && scope.WebSocketPair === void 0;
 }
 var WORKLOAD_IDENTITY_API_KEY_PLACEHOLDER = "workload-identity-auth";
-var inheritedDataResidencySelection = /* @__PURE__ */ Symbol("inheritedDataResidencySelection");
+var inheritedDataResidencySelection = Symbol("inheritedDataResidencySelection");
 var OpenAI = class {
   /**
    * API Client for interfacing with the OpenAI API.
@@ -60802,7 +60799,7 @@ function isUndiciDispatcherVersionMismatchError(error) {
 }
 
 // node_modules/openai/internal/bedrock.mjs
-var brand_privateBedrockClient = /* @__PURE__ */ Symbol.for("openai.privateBedrockClient");
+var brand_privateBedrockClient = Symbol.for("openai.privateBedrockClient");
 
 // node_modules/openai/bedrock.mjs
 var _a4;
