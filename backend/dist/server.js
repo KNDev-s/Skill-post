@@ -67516,8 +67516,9 @@ try {
   });
 } catch {
 }
+var isServerless = Boolean(process.env.VERCEL) || Boolean(process.env.AWS_LAMBDA_FUNCTION_NAME) || Boolean(process.env.LAMBDA_TASK_ROOT);
 var port = Number(process.env.PORT || config.port || 3001);
-if (process.env.NODE_ENV !== "test") {
+if (!isServerless && process.env.NODE_ENV !== "test") {
   app.listen({ port, host: "0.0.0.0" }, (err, address) => {
     if (err) {
       app.log.error(err);
@@ -67526,18 +67527,30 @@ if (process.env.NODE_ENV !== "test") {
     }
   });
 }
-var handler = async (req, res) => {
-  try {
-    await app.ready();
-    app.server.emit("request", req, res);
-  } catch (err) {
-    console.error("Error in serverless handler:", err);
-    if (!res.headersSent) {
-      res.statusCode = 500;
-      res.setHeader("Content-Type", "application/json");
-      res.end(JSON.stringify({ error: "Internal Server Error", message: String(err) }));
+var handler = (req, res) => {
+  return new Promise((resolve, reject) => {
+    if (res.writableEnded || res.finished) {
+      resolve();
+      return;
     }
-  }
+    res.on("finish", resolve);
+    res.on("close", resolve);
+    res.on("error", reject);
+    (async () => {
+      try {
+        await app.ready();
+        app.server.emit("request", req, res);
+      } catch (err) {
+        console.error("Error during app.ready in serverless handler:", err);
+        if (!res.headersSent) {
+          res.statusCode = 500;
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify({ error: "Internal Server Error", message: String(err) }));
+        }
+        resolve();
+      }
+    })();
+  });
 };
 var serverHandler = Object.assign(handler, app);
 var server_default = serverHandler;
