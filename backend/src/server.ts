@@ -46,9 +46,9 @@ app.get('/health', async () => ({
 
 await app.register(postRoutes, { prefix: '/api/v1' });
 
-// Listen if started directly or via PORT
-const port = Number(process.env.PORT || config.port || 3001);
-if (process.env.NODE_ENV !== 'test') {
+// Listen if started directly or locally
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  const port = Number(process.env.PORT || config.port || 3001);
   try {
     const address = await app.listen({ port, host: '0.0.0.0' });
     app.log.info(`🚀 Servidor KNDev's Social Backend rodando em ${address}`);
@@ -57,4 +57,8 @@ if (process.env.NODE_ENV !== 'test') {
   }
 }
 
-export default app;
+// Vercel Serverless Function Handler
+export default async function handler(req: any, res: any) {
+  await app.ready();
+  app.server.emit('request', req, res);
+}
