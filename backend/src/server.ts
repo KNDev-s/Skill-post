@@ -59,6 +59,7 @@ await app.ready();
 // Escuta na porta apenas localmente (fora da Vercel e fora de testes)
 if (
   !process.env.VERCEL &&
+  !process.env.AWS_LAMBDA_FUNCTION_NAME &&
   process.env.NODE_ENV !== 'test' &&
   process.env.NODE_ENV !== 'production'
 ) {
@@ -75,22 +76,7 @@ if (
 const handler = async (req: any, res: any) => {
   try {
     await app.ready();
-    const response = await app.inject({
-      method: req.method,
-      url: req.url,
-      headers: req.headers,
-      payload: req.body,
-      query: req.query,
-      remoteAddress: req.socket?.remoteAddress,
-    });
-
-    res.statusCode = response.statusCode;
-    for (const [key, value] of Object.entries(response.headers)) {
-      if (value !== undefined) {
-        res.setHeader(key, value);
-      }
-    }
-    return res.end(response.rawPayload);
+    app.server.emit('request', req, res);
   } catch (err) {
     console.error('Error in serverless handler:', err);
     if (!res.headersSent) {

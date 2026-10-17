@@ -61701,7 +61701,7 @@ app.get("/slides/:postId/:file", slideHandler);
 await app.register(postRoutes, { prefix: "/api/v1" });
 await app.register(postRoutes, { prefix: "/v1" });
 await app.ready();
-if (!process.env.VERCEL && process.env.NODE_ENV !== "test" && process.env.NODE_ENV !== "production") {
+if (!process.env.VERCEL && !process.env.AWS_LAMBDA_FUNCTION_NAME && process.env.NODE_ENV !== "test" && process.env.NODE_ENV !== "production") {
   const port = Number(process.env.PORT || config.port || 3001);
   try {
     const address = await app.listen({ port, host: "0.0.0.0" });
@@ -61713,21 +61713,7 @@ if (!process.env.VERCEL && process.env.NODE_ENV !== "test" && process.env.NODE_E
 var handler = async (req, res) => {
   try {
     await app.ready();
-    const response = await app.inject({
-      method: req.method,
-      url: req.url,
-      headers: req.headers,
-      payload: req.body,
-      query: req.query,
-      remoteAddress: req.socket?.remoteAddress
-    });
-    res.statusCode = response.statusCode;
-    for (const [key, value] of Object.entries(response.headers)) {
-      if (value !== void 0) {
-        res.setHeader(key, value);
-      }
-    }
-    return res.end(response.rawPayload);
+    app.server.emit("request", req, res);
   } catch (err) {
     console.error("Error in serverless handler:", err);
     if (!res.headersSent) {
