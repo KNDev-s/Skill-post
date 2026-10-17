@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && esbuild src/server.ts --bundle --platform=node --target=node22 --format=esm --outfile=dist/server.js --external:@resvg/resvg-js",
+    "build": "node build.mjs",
     "start": "node dist/server.js",
     "test": "npm run build && node --test tests/*.test.mjs"
   },

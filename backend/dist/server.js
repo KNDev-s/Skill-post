@@ -1,3 +1,4 @@
+import { createRequire } from 'node:module'; const require = createRequire(import.meta.url);
 var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -61736,10 +61737,11 @@ var handler = async (req, res) => {
     }
   }
 };
-var server_default = Object.assign(handler, app);
+var server_default = handler;
 export {
   app,
-  server_default as default
+  server_default as default,
+  handler
 };
 /*! Bundled license information:
 
