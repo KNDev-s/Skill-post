@@ -46,22 +46,37 @@ app.get('/public/slides/:postId/:file', async (request, reply) => {
 await app.register(postRoutes, { prefix: '/api/v1' });
 await app.ready();
 
-// Em ambientes não-teste, escutar na porta provida pela Vercel/Node
-if (process.env.NODE_ENV !== 'test') {
+// Em ambientes locais (não Vercel e não testes), escutar na porta
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
   const port = Number(process.env.PORT || config.port || 3001);
   try {
     const address = await app.listen({ port, host: '0.0.0.0' });
     app.log.info(`🚀 Servidor KNDev's Social Backend rodando em ${address}`);
   } catch (err) {
-    app.log.warn(`Aviso de inicialização de porta: ${err}`);
+    app.log.error(err);
   }
 }
 
-// Handler para ambientes serverless
-const handler = async (req: any, res: any) => {
+// Handler para ambientes serverless (Vercel)
+export default async function handler(req: any, res: any) {
   try {
     await app.ready();
-    app.server.emit('request', req, res);
+    const response = await app.inject({
+      method: req.method,
+      url: req.url,
+      headers: req.headers,
+      payload: req.body,
+      query: req.query,
+      remoteAddress: req.socket?.remoteAddress,
+    });
+
+    res.statusCode = response.statusCode;
+    for (const [key, value] of Object.entries(response.headers)) {
+      if (value !== undefined) {
+        res.setHeader(key, value);
+      }
+    }
+    return res.end(response.rawPayload);
   } catch (err) {
     console.error('Error in serverless handler:', err);
     if (!res.headersSent) {
@@ -70,6 +85,4 @@ const handler = async (req: any, res: any) => {
       res.end(JSON.stringify({ error: 'Internal Server Error', message: String(err) }));
     }
   }
-};
-
-export default Object.assign(handler, app);
+}
