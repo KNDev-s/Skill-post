@@ -9,70 +9,58 @@ export const app = Fastify({
   logger: process.env.NODE_ENV !== 'test',
 });
 
-let readyPromise: Promise<void> | null = null;
-export async function init() {
-  if (!readyPromise) {
-    readyPromise = (async () => {
-      await app.register(fastifyCors, {
-        origin: true,
-        credentials: true,
-        methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Accept', 'Idempotency-Key'],
-      });
+// Registrar plugins e rotas imediatamente
+await app.register(fastifyCors, {
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept', 'Idempotency-Key'],
+});
 
-      try {
-        await fs.mkdir(config.slidesDir, { recursive: true });
-      } catch {
-        // Directory might already exist
-      }
-
-      app.get('/health', async () => ({
-        status: 'ok',
-        service: 'kndevs-social-backend',
-        timestamp: new Date().toISOString(),
-      }));
-
-      app.get('/public/slides/:postId/:file', async (request, reply) => {
-        const { postId, file } = request.params as { postId: string; file: string };
-        const sanitizedPostId = path.basename(postId);
-        const sanitizedFile = path.basename(file);
-        const filePath = path.join(config.slidesDir, sanitizedPostId, sanitizedFile);
-        try {
-          const buffer = await fs.readFile(filePath);
-          reply.header('Content-Type', 'image/png');
-          return reply.send(buffer);
-        } catch {
-          return reply.status(404).send({ error: 'Image not found' });
-        }
-      });
-
-      await app.register(postRoutes, { prefix: '/api/v1' });
-      await app.ready();
-    })();
-  }
-  return readyPromise;
+try {
+  await fs.mkdir(config.slidesDir, { recursive: true });
+} catch {
+  // Directory might already exist
 }
 
-// Standalone listener for local dev
-if (
-  !process.env.VERCEL &&
-  process.env.NODE_ENV !== 'production' &&
-  process.env.NODE_ENV !== 'test'
-) {
-  await init();
+app.get('/health', async () => ({
+  status: 'ok',
+  service: 'kndevs-social-backend',
+  timestamp: new Date().toISOString(),
+}));
+
+app.get('/public/slides/:postId/:file', async (request, reply) => {
+  const { postId, file } = request.params as { postId: string; file: string };
+  const sanitizedPostId = path.basename(postId);
+  const sanitizedFile = path.basename(file);
+  const filePath = path.join(config.slidesDir, sanitizedPostId, sanitizedFile);
+  try {
+    const buffer = await fs.readFile(filePath);
+    reply.header('Content-Type', 'image/png');
+    return reply.send(buffer);
+  } catch {
+    return reply.status(404).send({ error: 'Image not found' });
+  }
+});
+
+await app.register(postRoutes, { prefix: '/api/v1' });
+await app.ready();
+
+// Em ambientes não-teste, escutar na porta provida pela Vercel/Node
+if (process.env.NODE_ENV !== 'test') {
   const port = Number(process.env.PORT || config.port || 3001);
   try {
     const address = await app.listen({ port, host: '0.0.0.0' });
     app.log.info(`🚀 Servidor KNDev's Social Backend rodando em ${address}`);
   } catch (err) {
-    app.log.error(err);
+    app.log.warn(`Aviso de inicialização de porta: ${err}`);
   }
 }
 
-// Vercel Serverless Function Handler
-export default async function handler(req: any, res: any) {
+// Handler para ambientes serverless
+const handler = async (req: any, res: any) => {
   try {
-    await init();
+    await app.ready();
     app.server.emit('request', req, res);
   } catch (err) {
     console.error('Error in serverless handler:', err);
@@ -82,4 +70,6 @@ export default async function handler(req: any, res: any) {
       res.end(JSON.stringify({ error: 'Internal Server Error', message: String(err) }));
     }
   }
-}
+};
+
+export default Object.assign(handler, app);
