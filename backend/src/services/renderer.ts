@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { Resvg } from '@resvg/resvg-js';
 import { config } from '../config.js';
 import type { Slide } from '../types.js';
@@ -8,9 +9,12 @@ let logoDataUri = '';
 
 async function getLogoDataUri(): Promise<string> {
   if (logoDataUri) return logoDataUri;
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
   const candidates = [
     path.resolve(process.cwd(), 'assets/logo-white.png'),
     path.resolve(process.cwd(), 'backend/assets/logo-white.png'),
+    path.resolve(currentDir, '../../assets/logo-white.png'),
+    path.resolve(currentDir, '../../../assets/logo-white.png'),
     path.join(config.skillDir, 'assets/logo-white.png'),
   ];
   for (const logoPath of candidates) {

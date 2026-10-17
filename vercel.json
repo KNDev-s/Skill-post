@@ -9,7 +9,8 @@
       "root": "backend",
       "framework": "fastify",
       "runtime": "node",
-      "entrypoint": "src/server.ts"
+      "buildCommand": "npm run build",
+      "entrypoint": "dist/server.js"
     }
   },
   "rewrites": [
