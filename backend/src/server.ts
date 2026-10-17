@@ -56,14 +56,18 @@ await app.register(postRoutes, { prefix: '/api/v1' });
 await app.register(postRoutes, { prefix: '/v1' });
 await app.ready();
 
-// Escuta na porta no ambiente local ou de contêiner/serviço longo
-if (process.env.NODE_ENV !== 'test') {
+// Escuta na porta apenas localmente (fora da Vercel e fora de testes)
+if (
+  !process.env.VERCEL &&
+  process.env.NODE_ENV !== 'test' &&
+  process.env.NODE_ENV !== 'production'
+) {
   const port = Number(process.env.PORT || config.port || 3001);
   try {
     const address = await app.listen({ port, host: '0.0.0.0' });
     app.log.info(`🚀 Servidor KNDev's Social Backend rodando em ${address}`);
   } catch (err) {
-    app.log.warn(`Aviso de porta (ambiente serverless ou já em uso): ${err}`);
+    app.log.error(err);
   }
 }
 
