@@ -4,7 +4,7 @@ Estúdio interno para gerar carrosséis, revisar, aprovar e solicitar publicaç�
 
 ## Estado atual
 
-- Implementação local preparada e testada. O deploy e a validação na conta Cloudflare ainda precisam ser realizados.
+- O Worker tem host próprio em `workers.dev`, separado da landing page; configure D1, R2, Browser Run e Access conforme `docs/cloudflare.md`. O deploy real e a validação na conta Cloudflare ainda precisam ser realizados.
 - Publicação real começa **desabilitada**. Leia o procedimento em `docs/cloudflare.md` antes de ativá-la.
 - O servidor Fastify em `backend/` foi desativado; seu código permanece como referência para o Matheus. Ele não deve ser hospedado como servidor de produção.
 - Uma conta Instagram da KNDev's, vários usuários internos autenticados pelo Cloudflare Access. Cada usuário acessa seus próprios posts.

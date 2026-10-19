@@ -2,7 +2,7 @@
 
 ## 1. Antes de publicar
 
-Escolha um subdomínio sob seu controle, por exemplo `social.suaempresa.com`. Defina os e-mails autorizados da equipe. Este projeto atende uma conta Instagram; os posts são privados por usuário do Access.
+O primeiro ambiente usa o endereço `workers.dev` exclusivo deste Worker. Ele é separado do projeto Pages/Worker da landing page e não exige domínio próprio. Defina os e-mails autorizados da equipe. Este projeto atende uma conta Instagram; os posts são privados por usuário do Access.
 
 Use Node.js 24 LTS. Os recursos necessários são Workers com Static Assets, D1, R2 e Browser Run. Confira disponibilidade e cobrança na sua conta antes de habilitá-los. O Cron usa processamento externo e pode exceder as cotas gratuitas; prefira homologar no plano compatível com a carga real. Nenhum recurso remoto foi criado nesta entrega.
 
@@ -34,36 +34,47 @@ npx wrangler r2 bucket create kndevs-social-media
 
 No painel, habilite Browser Run para a conta, se necessário. Mantenha o bucket R2 privado: sem domínio público e sem acesso público `r2.dev`. Use recursos separados para homologação e produção; jamais aponte os testes para o banco de produção.
 
+No painel Workers & Pages, confira o subdomínio `workers.dev` da conta. O endereço inicial terá o formato `https://kndevs-social-creator.<subdominio-da-conta>.workers.dev`. Se o nome do Worker já estiver em uso na conta, escolha outro nome em `wrangler.toml` e use-o em todas as etapas abaixo.
+
 Edite `wrangler.toml`:
 
 - Troque `database_id` pelo UUID retornado pelo D1.
 - Ajuste o nome do bucket se criou outro.
-- Defina `APP_ORIGIN` como a origem HTTPS exata, sem barra final.
+- Defina `APP_ORIGIN` como o endereço HTTPS completo `workers.dev` deste Worker, sem barra final. O valor precisa coincidir exatamente com o host implantado.
 - Configure `ACCESS_TEAM_DOMAIN` e `ACCESS_AUD` conforme a etapa seguinte.
 - Mantenha `ENABLE_PUBLISHING = "false"` durante a primeira implantação.
 - Mantenha `INSTAGRAM_API_HOST = "graph.instagram.com"` para o token validado nesta máquina. `graph.facebook.com` corresponde ao outro fluxo; não troque apenas porque o token foi chamado de “token da Meta”.
 - `META_API_VERSION = "v21.0"` preserva a versão que respondeu à consulta real. Verifique seu prazo de suporte e homologue uma versão mais nova antes de alterá-la.
 
-Acrescente esta configuração **no topo do arquivo, antes das tabelas**; substitua o domínio:
+Não adicione `routes` nem `custom_domain` nesta fase. `workers_dev = true` habilita somente o host do Social Studio. Não altere a configuração da landing page nem reutilize o nome de outro Worker.
 
-```toml
-routes = [{ pattern = "social.suaempresa.com", custom_domain = true }]
-```
-
-`workers_dev = false`, `preview_urls = false` e `run_worker_first = true` evitam acesso alternativo e verificam autenticação também antes dos arquivos estáticos.
+`preview_urls = false` evita hosts de preview adicionais e `run_worker_first = true` verifica autenticação antes de servir os arquivos estáticos. O host `workers.dev` continua público na borda; proteja-o com Access antes de compartilhar ou usar o app.
 
 ## 4. Configurar o login da equipe e o acesso de mídia
 
-No Cloudflare Zero Trust → Access → Applications:
+No Cloudflare Zero Trust → Access → Applications, crie aplicações Self-hosted usando o endereço completo `workers.dev`:
 
-1. Crie uma aplicação Self-hosted para todo o subdomínio. Adicione política Allow somente para os e-mails da equipe; use MFA no provedor de identidade e sessão curta adequada à operação. Não crie Allow Everyone.
+1. Crie uma aplicação para o host completo do Worker (`kndevs-social-creator.<subdominio-da-conta>.workers.dev`) e adicione política Allow somente para os e-mails da equipe; use MFA no provedor de identidade e sessão curta adequada à operação. Não crie Allow Everyone. A proteção deve exigir login também em `/` e `/api/*`.
 2. Copie o Application Audience (AUD) para `ACCESS_AUD`. Em `ACCESS_TEAM_DOMAIN`, use o domínio da equipe terminado em `.cloudflareaccess.com`, sem `https://`.
-3. Crie uma aplicação mais específica para `social.suaempresa.com/media/*`, com política **Bypass** para esse caminho somente. Essa exceção permite que a Meta baixe as imagens; o Worker continua exigindo assinatura HMAC e validade máxima de uma hora.
+3. Crie uma aplicação mais específica para o caminho `<host-completo-do-worker>/media/*`, com política **Bypass** para esse caminho somente. Essa exceção permite que a Meta baixe as imagens; o Worker continua exigindo assinatura HMAC e validade máxima de uma hora.
 4. Não aplique Bypass em `/`, `/api/*` ou nos demais caminhos. Não confunda uma exceção de mídia com tornar o R2 público.
+
+Se a conta oferecer proteção de Access para o Worker inteiro, não a use para este ambiente enquanto o caminho de mídia precisar ser acessível pela Meta. Use as aplicações por host e caminho acima para manter apenas `/media/*` fora do login.
 
 O Worker verifica criptograficamente assinatura RS256, emissor, audiência, expiração e identidade. Cabeçalhos de e-mail ou JWTs forjados não bastam.
 
-## 5. Aplicar o banco e cadastrar segredos
+## 5. Aplicar o banco, cadastrar segredos e implantar
+
+Antes da implantação, cadastre os quatro segredos descritos abaixo pelo prompt protegido do Wrangler ou pelo painel. Os valores não são fornecidos pelo repositório; use os valores da conta de homologação e nunca os inclua em comandos, arquivos versionados ou variáveis `VITE_`.
+
+```sh
+npx wrangler secret put OPENAI_API_KEY
+npx wrangler secret put INSTAGRAM_ACCESS_TOKEN
+npx wrangler secret put INSTAGRAM_ACCOUNT_ID
+npx wrangler secret put MEDIA_SIGNING_KEY
+```
+
+Use em `MEDIA_SIGNING_KEY` o mesmo valor aleatório de `.dev.vars`. Mantenha `ENABLE_PUBLISHING = "false"` durante a homologação.
 
 ```sh
 npx wrangler d1 migrations apply kndevs-social --remote
@@ -71,7 +82,9 @@ npm run build:deploy
 npx wrangler deploy
 ```
 
-Essa primeira implantação pode ficar indisponível até concluir os secrets, mas permanece protegida e sem publicação. No painel Workers & Pages → Worker → Settings → Variables and Secrets, cadastre os quatro nomes como **Secret**:
+O endereço de acesso será `https://kndevs-social-creator.<subdominio-da-conta>.workers.dev`. Esta instrução publica apenas o Worker desta aplicação; não faz alterações na landing page. O CI executa `wrangler deploy --dry-run` e não implanta recursos remotos. Nenhum deploy é realizado automaticamente por este repositório.
+
+Também é possível cadastrar os quatro nomes como **Secret** em Workers & Pages → Worker → Settings → Variables and Secrets:
 
 | Nome                     | De onde vem                                  |
 | ------------------------ | -------------------------------------------- |
@@ -103,13 +116,13 @@ Os erros “função de desenvolvedor insuficiente” e “invalid platform app�
 
 ## 7. Homologar antes de liberar publicação
 
-1. Acesse o domínio sem login: deve exigir Access. Usuário fora da política deve ser recusado. Confira que o endereço `workers.dev` e previews não fornecem acesso alternativo.
+1. Acesse o endereço `workers.dev` sem login: deve exigir Access. Usuário fora da política deve ser recusado. Confirme que os previews estão desabilitados.
 2. Entre, gere um carrossel pequeno e espere a fila. Confira se o Cron aparece no painel e os estados avançam de `generating` para `ready`.
 3. Verifique imagens, acentos, logo, legenda e todos os slides. PNGs devem medir 1080 × 1350. O Browser Run real ainda precisa desse teste; os testes locais validaram o mesmo HTML no Chromium.
 4. Recarregue a aba: o último post da sessão deve reaparecer. Acesse com outro usuário: o post e a imagem privada devem ser recusados.
 5. Edite a legenda após aprovar: o estado deve voltar a `ready`. O envio permanece bloqueado sem nova aprovação.
 6. Confirme que `/media/...` sem assinatura é recusado. Durante o teste de publicação, confira que a Meta consegue baixar o JPEG pela URL temporária, sem login no Access. Não divulgue essa URL.
-7. Somente depois da confirmação da conta/permissões, defina `ENABLE_PUBLISHING = "true"` e faça novo deploy. Aprove um conteúdo de teste e clique uma vez em publicar. Confira o post na própria conta Instagram e o `published_id` no banco.
+7. Somente depois da confirmação da conta/permissões, defina `ENABLE_PUBLISHING = "true"` e faça novo deploy manual. Aprove um conteúdo de teste e clique uma vez em publicar. Confira o post na própria conta Instagram e o `published_id` no banco.
 8. Agende outro teste alguns minutos à frente. Feche a aba e confirme a execução pelo Cron. O horário não é uma garantia de segundo exato: há fila, processamento da mídia e disponibilidade da Meta.
 
 Nada foi publicado na conta Instagram durante esta entrega. Os testes automatizados de publicação usam respostas simuladas do provedor.
@@ -129,6 +142,8 @@ Nada foi publicado na conta Instagram durante esta entrega. Os testes automatiza
 ## Referências oficiais
 
 - [Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/).
+- [Proteger Workers com Cloudflare Access](https://developers.cloudflare.com/workers/configuration/cloudflare-access/).
+- [Endereços `workers.dev`](https://developers.cloudflare.com/workers/configuration/routing/workers-dev/).
 - [Validação do JWT do Access](https://developers.cloudflare.com/cloudflare-one/access-controls/applications/http-apps/authorization-cookie/validating-json/).
 - [Secrets do Worker](https://developers.cloudflare.com/workers/configuration/secrets/).
 - [Cron Triggers](https://developers.cloudflare.com/workers/configuration/cron-triggers/).

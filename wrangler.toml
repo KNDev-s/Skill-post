@@ -2,7 +2,7 @@ name = "kndevs-social-creator"
 main = "worker/index.ts"
 compatibility_date = "2026-09-19"
 compatibility_flags = ["nodejs_compat"]
-workers_dev = false
+workers_dev = true
 preview_urls = false
 
 [assets]
