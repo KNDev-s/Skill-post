@@ -17,15 +17,27 @@ const contentSchema = z
     caption: z.string().trim().min(1).max(2200),
   })
   .strict();
-function validateEditorial(slides: { title: string; body: string }[], expected: number): string | null {
+function validateEditorial(
+  slides: { title: string; body: string }[],
+  expected: number,
+): string | null {
   if (slides.length !== expected) return 'Quantidade incorreta de slides.';
-  const normalized = (s: string) => s.toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+  const normalized = (s: string) =>
+    s
+      .toLocaleLowerCase('pt-BR')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9 ]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
   const titles = slides.map((slide) => normalized(slide.title));
   if (new Set(titles).size !== titles.length) return 'Há títulos repetidos.';
   const bodies = slides.map((slide) => normalized(slide.body));
   if (new Set(bodies).size !== bodies.length) return 'Há textos repetidos.';
-  if (slides.some((slide) => slide.title.length > 90 || slide.body.length > 260)) return 'Texto excede o limite permitido.';
-  if (slides.some((slide) => slide.body.split(/\s+/).filter(Boolean).length < 7)) return 'Os slides precisam ter conteúdo útil, não apenas slogans.';
+  if (slides.some((slide) => slide.title.length > 90 || slide.body.length > 260))
+    return 'Texto excede o limite permitido.';
+  if (slides.some((slide) => slide.body.split(/\s+/).filter(Boolean).length < 7))
+    return 'Os slides precisam ter conteúdo útil, não apenas slogans.';
   return null;
 }
 
