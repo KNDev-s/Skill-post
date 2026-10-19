@@ -251,7 +251,11 @@ describe('real D1/R2 integration', () => {
             message: {
               content: JSON.stringify({
                 slides: Array.from({ length: 3 }, (_, i) => ({
-                  title: ['Identifique o gargalo', 'Automatize com critério', 'Comece pequeno e meça'][i],
+                  title: [
+                    'Identifique o gargalo',
+                    'Automatize com critério',
+                    'Comece pequeno e meça',
+                  ][i],
                   body: [
                     'Observe onde tarefas manuais consomem o tempo da equipe antes de escolher a ferramenta.',
                     'Defina o evento que inicia a automação e registre falhas para corrigir o processo.',
