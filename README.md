@@ -4,7 +4,7 @@ Estúdio interno para gerar carrosséis, revisar, aprovar e solicitar publicaç�
 
 ## Estado atual
 
-- Implementação local preparada e testada. O deploy e a validação na conta Cloudflare ainda precisam ser realizados.
+- A configuração prevê um host próprio em `workers.dev`, separado da landing page; configure D1, R2, Browser Run e Access conforme `docs/cloudflare.md`. O deploy real e a validação na conta Cloudflare ainda precisam ser realizados.
 - Publicação real começa **desabilitada**. Leia o procedimento em `docs/cloudflare.md` antes de ativá-la.
 - O servidor Fastify em `backend/` foi desativado; seu código permanece como referência para o Matheus. Ele não deve ser hospedado como servidor de produção.
 - Uma conta Instagram da KNDev's, vários usuários internos autenticados pelo Cloudflare Access. Cada usuário acessa seus próprios posts.
@@ -65,3 +65,11 @@ Meta → /media/... assinado e temporário → Worker → R2
 - `docs/audit.md`: achados, correções, evidências e limitações.
 
 As fontes são servidas localmente. O navegador não recebe tokens da Meta/OpenAI nem a chave de assinatura; as chamadas aos provedores partem do Worker. Falhas nunca acionam geração ou publicação simuladas no modo integrado.
+
+## Vercel: limitações do deploy
+
+Este repositório **não tem backend de produção compatível com Vercel**. O frontend Vite pode ser servido como site estático, mas o fluxo completo de geração, persistência, renderização e publicação depende dos bindings do Cloudflare Worker: D1, R2, Browser Run, Assets e agendamentos Cron. O diretório `backend/` é legado e não deve ser usado como substituto de produção: seus dados ficam em memória e as imagens em disco local/temporário.
+
+**Não configure `VITE_SERVICE_MODE=mock` como correção em produção:** isso apenas simula resultados. A opção recomendada é publicar frontend + Worker na Cloudflare, seguindo `docs/cloudflare.md`, mantendo autenticação e armazenamento persistente. Se Vercel for obrigatório, é necessário migrar a API, fila, banco, armazenamento de mídia, renderizador e autenticação para serviços compatíveis, e só depois ativar publicação real.
+
+O HTTP 412 de um serviço externo de upload significa falha de pré-condição. Sem URL da requisição e resposta detalhada do provedor, não é possível atribuir sua origem à plataforma; não o corrija removendo validações nem expondo segredos no navegador.
