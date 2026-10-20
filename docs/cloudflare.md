@@ -34,13 +34,13 @@ npx wrangler r2 bucket create kndevs-social-media
 
 No painel, habilite Browser Run para a conta, se necessário. Mantenha o bucket R2 privado: sem domínio público e sem acesso público `r2.dev`. Use recursos separados para homologação e produção; jamais aponte os testes para o banco de produção.
 
-No painel Workers & Pages, confira o subdomínio `workers.dev` da conta. O endereço inicial terá o formato `https://kndevs-social-creator.<subdominio-da-conta>.workers.dev`. Se o nome do Worker já estiver em uso na conta, escolha outro nome em `wrangler.toml` e use-o em todas as etapas abaixo.
+O endereço atual da landing page, `https://kndvs-solutions.kndevs.workers.dev`, confirma o subdomínio `kndevs.workers.dev` da conta. O Social Studio usa outro Worker e terá o endereço `https://kndevs-social-creator.kndevs.workers.dev`. Se o nome `kndevs-social-creator` já estiver em uso nessa conta, escolha outro nome em `wrangler.toml` e atualize `APP_ORIGIN` para corresponder ao endereço resultante.
 
 Edite `wrangler.toml`:
 
 - Troque `database_id` pelo UUID retornado pelo D1.
 - Ajuste o nome do bucket se criou outro.
-- Defina `APP_ORIGIN` como o endereço HTTPS completo `workers.dev` deste Worker, sem barra final. O valor precisa coincidir exatamente com o host implantado.
+- `APP_ORIGIN` já está definido como `https://kndevs-social-creator.kndevs.workers.dev`; altere somente se escolher outro nome de Worker.
 - Configure `ACCESS_TEAM_DOMAIN` e `ACCESS_AUD` conforme a etapa seguinte.
 - Mantenha `ENABLE_PUBLISHING = "false"` durante a primeira implantação.
 - Mantenha `INSTAGRAM_API_HOST = "graph.instagram.com"` para o token validado nesta máquina. `graph.facebook.com` corresponde ao outro fluxo; não troque apenas porque o token foi chamado de “token da Meta”.
@@ -54,9 +54,9 @@ Não adicione `routes` nem `custom_domain` nesta fase. `workers_dev = true` habi
 
 No Cloudflare Zero Trust → Access → Applications, crie aplicações Self-hosted usando o endereço completo `workers.dev`:
 
-1. Crie uma aplicação para o host completo do Worker (`kndevs-social-creator.<subdominio-da-conta>.workers.dev`) e adicione política Allow somente para os e-mails da equipe; use MFA no provedor de identidade e sessão curta adequada à operação. Não crie Allow Everyone. A proteção deve exigir login também em `/` e `/api/*`.
+1. Crie uma aplicação para o host completo do Worker (`kndevs-social-creator.kndevs.workers.dev`) e adicione uma política Allow somente para os dois e-mails da equipe informados para esta configuração; use MFA no provedor de identidade e sessão curta adequada à operação. Não crie Allow Everyone. A proteção deve exigir login também em `/` e `/api/*`.
 2. Copie o Application Audience (AUD) para `ACCESS_AUD`. Em `ACCESS_TEAM_DOMAIN`, use o domínio da equipe terminado em `.cloudflareaccess.com`, sem `https://`.
-3. Crie uma aplicação mais específica para o caminho `<host-completo-do-worker>/media/*`, com política **Bypass** para esse caminho somente. Essa exceção permite que a Meta baixe as imagens; o Worker continua exigindo assinatura HMAC e validade máxima de uma hora.
+3. Crie uma aplicação mais específica para o caminho `kndevs-social-creator.kndevs.workers.dev/media/*`, com política **Bypass** para esse caminho somente. Essa exceção permite que a Meta baixe as imagens; o Worker continua exigindo assinatura HMAC e validade máxima de uma hora.
 4. Não aplique Bypass em `/`, `/api/*` ou nos demais caminhos. Não confunda uma exceção de mídia com tornar o R2 público.
 
 Se a conta oferecer proteção de Access para o Worker inteiro, não a use para este ambiente enquanto o caminho de mídia precisar ser acessível pela Meta. Use as aplicações por host e caminho acima para manter apenas `/media/*` fora do login.
@@ -82,7 +82,7 @@ npm run build:deploy
 npx wrangler deploy
 ```
 
-O endereço de acesso será `https://kndevs-social-creator.<subdominio-da-conta>.workers.dev`. Esta instrução publica apenas o Worker desta aplicação; não faz alterações na landing page. O CI executa `wrangler deploy --dry-run` e não implanta recursos remotos. Nenhum deploy é realizado automaticamente por este repositório.
+O endereço de acesso será `https://kndevs-social-creator.kndevs.workers.dev`. Esta instrução publica apenas o Worker desta aplicação; não faz alterações na landing page. O CI executa `wrangler deploy --dry-run` e não implanta recursos remotos. Nenhum deploy é realizado automaticamente por este repositório.
 
 Também é possível cadastrar os quatro nomes como **Secret** em Workers & Pages → Worker → Settings → Variables and Secrets:
 
